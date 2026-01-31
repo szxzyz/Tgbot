@@ -1,0 +1,52 @@
+import { pgTable, text, serial, integer, real, bigint, timestamp, boolean } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+import { relations } from "drizzle-orm";
+
+// === TABLE DEFINITIONS ===
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  telegramId: text("telegram_id").notNull().unique(), // stored as text to avoid bigint issues
+  username: text("username"),
+  firstName: text("first_name"),
+  languageCode: text("language_code"),
+  balance: real("balance").default(0).notNull(),
+  miningLevel: integer("mining_level").default(1).notNull(),
+  lastClaimTime: bigint("last_claim_time", { mode: "number" }).notNull(), // timestamp in ms
+  referrerId: text("referrer_id"), // telegram_id of referrer
+  referralCount: integer("referral_count").default(0).notNull(),
+  isPremium: boolean("is_premium").default(false),
+  status: text("status").default("active").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const withdrawals = pgTable("withdrawals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  amount: real("amount").notNull(),
+  walletAddress: text("wallet_address").notNull(),
+  status: text("status").default("pending").notNull(), // pending, processing, completed, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === RELATIONS ===
+export const usersRelations = relations(users, ({ many }) => ({
+  withdrawals: many(withdrawals),
+}));
+
+export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
+  user: one(users, {
+    fields: [withdrawals.userId],
+    references: [users.id],
+  }),
+}));
+
+// === SCHEMAS ===
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({ id: true, createdAt: true });
+
+// === TYPES ===
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
