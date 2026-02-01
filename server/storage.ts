@@ -18,6 +18,7 @@ export interface IStorage {
   getUserTask(userId: number, taskId: number): Promise<UserTask | undefined>;
   createUserTask(userTask: InsertUserTask): Promise<UserTask>;
   updateUserTask(id: number, updates: Partial<UserTask>): Promise<UserTask>;
+  createTask(task: InsertTask): Promise<Task>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -127,6 +128,24 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db.insert(tasks).values(insertTask).returning();
+    return task;
+  }
+
+  async getTasksByCreator(creatorId: number): Promise<Task[]> {
+    return await db.select().from(tasks).where(eq(tasks.creatorId, creatorId)).orderBy(desc(tasks.createdAt));
+  }
+
+  async incrementTaskCompletion(taskId: number): Promise<void> {
+    await db.update(tasks)
+      .set({ 
+        currentCompletions: sql`${tasks.currentCompletions} + 1`,
+        isActive: sql`CASE WHEN ${tasks.currentCompletions} + 1 >= ${tasks.maxCompletions} THEN false ELSE ${tasks.isActive} END`
+      })
+      .where(eq(tasks.id, taskId));
   }
 }
 
