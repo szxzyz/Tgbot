@@ -34,6 +34,9 @@ export const tasks = pgTable("tasks", {
   description: text("description").notNull(),
   reward: real("reward").notNull(),
   link: text("link").notNull(),
+  creatorId: integer("creator_id").references(() => users.id),
+  maxCompletions: integer("max_completions").default(1000).notNull(),
+  currentCompletions: integer("current_completions").default(0).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
