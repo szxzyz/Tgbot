@@ -26,6 +26,26 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'channel', 'bot'
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  reward: real("reward").notNull(),
+  link: text("link").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userTasks = pgTable("user_tasks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  taskId: integer("task_id").references(() => tasks.id).notNull(),
+  status: text("status").default("pending").notNull(), // pending, verified, completed
+  verifiedAt: timestamp("verified_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const withdrawals = pgTable("withdrawals", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
@@ -38,6 +58,22 @@ export const withdrawals = pgTable("withdrawals", {
 // === RELATIONS ===
 export const usersRelations = relations(users, ({ many }) => ({
   withdrawals: many(withdrawals),
+  userTasks: many(userTasks),
+}));
+
+export const tasksRelations = relations(tasks, ({ many }) => ({
+  userTasks: many(userTasks),
+}));
+
+export const userTasksRelations = relations(userTasks, ({ one }) => ({
+  user: one(users, {
+    fields: [userTasks.userId],
+    references: [users.id],
+  }),
+  task: one(tasks, {
+    fields: [userTasks.taskId],
+    references: [tasks.id],
+  }),
 }));
 
 export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
@@ -49,10 +85,16 @@ export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
 
 // === SCHEMAS ===
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true });
+export const insertUserTaskSchema = createInsertSchema(userTasks).omit({ id: true, createdAt: true });
 export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type UserTask = typeof userTasks.$inferSelect;
+export type InsertUserTask = z.infer<typeof insertUserTaskSchema>;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
