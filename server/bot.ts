@@ -1,4 +1,4 @@
-import TelegramBot, { InlineKeyboardMarkup } from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import { storage } from "./storage";
 
 let botInstance: TelegramBot | null = null;
@@ -88,30 +88,6 @@ const translations: Record<string, Record<string, string>> = {
     subscriptionError: "❌ Error checking subscription.",
     newReferral: "👥 New referral! You earned {amount} TON.",
     verificationPending: "⏳ Verification in progress. Please wait up to 7 days.",
-    advertise: "📈 Advertise",
-    advertiseMainMenu: "📈 Advertise – Main Menu",
-    advertiseMessage: "📈 *What would you like to promote?*\n\nChoose an option below 👇🏻",
-    advertiseChannel: "📢 Channel",
-    advertiseBot: "🤖 Bot",
-    advertiseMyTasks: "💼 My Tasks",
-    advertiseChannelTitle: "📈 *Advertise*\n↳ Advertise your Telegram Channel or Group\n\nYour link will be shown to thousands of users.\n\n💰 *Cost:* 0.250 TON\n\n⚠️ Add this bot (@{botUsername}) as ADMIN on your channel to verify if users have joined (recommended for better results).\n\n📝 *Enter the channel/group URL:*",
-    advertiseBotTitle: "📈 *Advertise*\n↳ Advertise your Telegram Bot\n\nYour bot will be promoted to thousands of users.\n\n💰 *Cost:* 0.250 TON\n📝 *Forward ANY message from your bot to continue.*\n\n📌 *Requirement:*\nUser forwards any message from the target bot\nBot username auto-detect hoga",
-    insufficientForAds: "❌ You need at least 0.25 TON to create an advertisement.",
-    adCreatedSuccess: "✅ Your promotion task has been created successfully!\n\nYour task is now live 🎯\n📌 Task auto-post ho jayega task channel / system list me\n📌 Users task link se bot me aa kar task complete karenge",
-    invalidUrl: "❌ Invalid URL. Please provide a valid Telegram link.",
-    notABotMessage: "❌ This message does not seem to be from a bot. Please forward a message from the bot you want to promote.",
-    advertise: "📈 Advertise",
-    advertiseMainMenu: "📈 Advertise – Main Menu",
-    advertiseMessage: "📈 *What would you like to promote?*\n\nChoose an option below 👇🏻",
-    advertiseChannel: "📢 Channel",
-    advertiseBot: "🤖 Bot",
-    advertiseMyTasks: "💼 My Tasks",
-    advertiseChannelTitle: "📈 *Advertise*\n↳ Advertise your Telegram Channel or Group\n\nYour link will be shown to thousands of users.\n\n💰 *Cost:* 0.250 TON\n\n⚠️ Add this bot (@{botUsername}) as ADMIN on your channel to verify if users have joined (recommended for better results).\n\n📝 *Enter the channel/group URL:*",
-    advertiseBotTitle: "📈 *Advertise*\n↳ Advertise your Telegram Bot\n\nYour bot will be promoted to thousands of users.\n\n💰 *Cost:* 0.250 TON\n📝 *Forward ANY message from your bot to continue.*\n\n📌 *Requirement:*\nUser forwards any message from the target bot\nBot username auto-detect hoga",
-    insufficientForAds: "❌ You need at least 0.25 TON to create an advertisement.",
-    adCreatedSuccess: "✅ Your promotion task has been created successfully!\n\nYour task is now live 🎯\n📌 Task auto-post ho jayega task channel / system list me\n📌 Users task link se bot me aa kar task complete karenge",
-    invalidUrl: "❌ Invalid URL. Please provide a valid Telegram link.",
-    notABotMessage: "❌ This message does not seem to be from a bot. Please forward a message from the bot you want to promote.",
     channelTaskTitle: "📌 *New Task: Subscribe to the Channel*",
     channelTaskStep1: "➡️ Join the channel using the button below",
     channelTaskStep2: "➡️ Stay subscribed for at least 7 days",
@@ -119,14 +95,13 @@ const translations: Record<string, Record<string, string>> = {
     botTaskTitle: "📌 *New Task: Start the Bot*",
     botTaskStep1: "➡️ Open the bot using the button below",
     botTaskStep2: "➡️ Do NOT block the bot for at least 7 days",
-    botTaskWarning: "❗ Bloquear antes de 7 días puede generar penalidad",
+    botTaskWarning: "❗ Blocking before 7 days may lead to penalty",
     missionChannel: "👉🏻 *Mission: Engage with the channel and join it.*\n\n❓ After joining, press « ✅ Joined » below.",
     missionBot: "👉🏻 *Mission: Engage with the bot.*\n\n❓ Press « ✅ Started » and then forward ANY message\nfrom that bot here for verification.",
     joined: "✅ Joined",
     started: "✅ Started",
     skip: "↪️ Skip",
     check: "🔄 Check",
-    back: "↩️ Back",
   },
   ru: {
     selectLanguage: "Select language / Выберите язык",
@@ -761,21 +736,18 @@ export function setupBot() {
   function getMainMenuKeyboard(lang: string | null | undefined) {
     return {
       reply_markup: {
-        keyboard: [
-          [{ text: t(lang, "dashboard") }],
-          [
-            { text: t(lang, "earnings") },
-            { text: t(lang, "partners") },
-            { text: t(lang, "advertise") },
-          ],
-          [{ text: t(lang, "account") }, { text: t(lang, "info") }],
-        ],
-        resize_keyboard: true,
+        inline_keyboard: [
+          [{ text: t(lang, "refresh"), callback_data: "refresh" }],
+          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo" }],
+          [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
+          [{ text: t(lang, "earnings"), callback_data: "earnings" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
+          [{ text: t(lang, "info"), callback_data: "info" }]
+        ]
       }
     };
   }
 
-  function getBackButton(lang: string | null | undefined): { reply_markup: any } {
+  function getBackButton(lang: string | null | undefined) {
     return {
       reply_markup: {
         inline_keyboard: [[{ text: t(lang, "back"), callback_data: "back_to_menu" }]]
@@ -856,215 +828,27 @@ ${t(lang, "miningTagline")}
     bot?.sendMessage(chatId, welcomeText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
   });
 
-  const userStates: Record<number, { step: string; adType?: string }> = {};
-
-  async function handleChannelUrlInput(chatId: number, lang: string, user: any, url: string) {
-    if (!url.startsWith("https://t.me/")) {
-      bot?.sendMessage(chatId, t(lang, "invalidUrl"));
-      return;
-    }
-
-    if (user.balance < 0.25) {
-      bot?.sendMessage(chatId, t(lang, "insufficientForAds"));
-      return;
-    }
-
-    await storage.updateUser(user.id, { balance: user.balance - 0.25 });
-    await storage.createTask({
-      type: "channel",
-      title: "Subscribe to Channel",
-      description: `Subscribe to ${url}`,
-      reward: 0.0001,
-      link: url,
-      creatorId: user.id,
-      maxCompletions: 1000,
-      isActive: true
-    });
-
-    delete userStates[chatId];
-    bot?.sendMessage(chatId, t(lang, "adCreatedSuccess"), { parse_mode: "Markdown" });
-  }
-
-  async function handleBotForwardInput(chatId: number, lang: string, user: any, msg: TelegramBot.Message) {
-    const forwardedBot = msg.forward_from;
-    if (!forwardedBot || !forwardedBot.is_bot) {
-      bot?.sendMessage(chatId, t(lang, "notABotMessage"));
-      return;
-    }
-
-    if (user.balance < 0.25) {
-      bot?.sendMessage(chatId, t(lang, "insufficientForAds"));
-      return;
-    }
-
-    const botUrl = `https://t.me/${forwardedBot.username}`;
-    await storage.updateUser(user.id, { balance: user.balance - 0.25 });
-    await storage.createTask({
-      type: "bot",
-      title: "Start Bot",
-      description: `Start ${forwardedBot.first_name}`,
-      reward: 0.0001,
-      link: botUrl,
-      creatorId: user.id,
-      maxCompletions: 1000,
-      isActive: true
-    });
-
-    delete userStates[chatId];
-    bot?.sendMessage(chatId, t(lang, "adCreatedSuccess"), { parse_mode: "Markdown" });
-  }
-
   bot.on("message", async (msg) => {
-    const chatId = msg.chat.id;
-    if (!msg.from?.id) return;
-    const telegramId = msg.from.id.toString();
-    const user = await storage.getUserByTelegramId(telegramId);
-    if (!user) return;
-    const lang = user.language || "en";
-
-    if (msg.text === t(lang, "dashboard")) {
-      sendDashboard(chatId, lang, user);
-    } else if (msg.text === t(lang, "earnings")) {
-      sendEarnings(chatId, lang);
-    } else if (msg.text === t(lang, "partners")) {
-      sendPartners(chatId, lang, user);
-    } else if (msg.text === t(lang, "advertise")) {
-      sendAdvertiseMenu(chatId, lang);
-    } else if (msg.text === t(lang, "account")) {
-      sendAccountInfo(chatId, lang, user);
-    } else if (msg.text === t(lang, "info")) {
-      sendInfo(chatId, lang);
-    } else if (userStates[chatId]?.step === "WAITING_FOR_CHANNEL_URL") {
-      handleChannelUrlInput(chatId, lang, user, msg.text || "");
-    } else if (userStates[chatId]?.step === "WAITING_FOR_BOT_FORWARD") {
-      handleBotForwardInput(chatId, lang, user, msg);
+    if (msg.text && ["🇷🇺 Русский", "🇬🇧 English", "🇪🇸 Español", "🇵🇹 Português", "🇫🇷 Français", "🇾🇪 العربية"].includes(msg.text)) {
+      const telegramId = msg.from?.id.toString();
+      if (!telegramId) return;
+      const user = await storage.getUserByTelegramId(telegramId);
+      if (user && !user.language) {
+        const langMap: Record<string, string> = {
+          "🇷🇺 Русский": "ru", "🇬🇧 English": "en", "🇪🇸 Español": "es",
+          "🇵🇹 Português": "pt", "🇫🇷 Français": "fr", "🇾🇪 العربية": "ar"
+        };
+        const selectedLang = langMap[msg.text];
+        await storage.updateUser(user.id, { language: selectedLang, isVerified: true });
+        
+        // Skip verification - go directly to subscription check
+        bot?.sendMessage(msg.chat.id, t(selectedLang, "subscribeMessage"), {
+          ...getSubscribeKeyboard(selectedLang),
+          reply_markup: { ...getSubscribeKeyboard(selectedLang).reply_markup }
+        } as any);
+      }
     }
   });
-
-  async function sendDashboard(chatId: number, lang: string, user: any) {
-    const now = Date.now();
-    const lastClaim = user.lastClaimTime;
-    const diffSeconds = (now - lastClaim) / 1000;
-    const miningRatePer5Sec = getMiningRate(user.miningLevel, user.referralCount);
-    const miningRatePerSec = miningRatePer5Sec / 5;
-    const minedAmount = diffSeconds * miningRatePerSec;
-    const currentBalance = user.balance + minedAmount;
-    
-    const text = getDashboardText(lang, currentBalance, miningRatePer5Sec);
-    bot?.sendMessage(chatId, text, { 
-      parse_mode: "Markdown", 
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: t(lang, "refresh"), callback_data: "refresh" }],
-          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo" }],
-          [{ text: t(lang, "withdraw"), callback_data: "withdraw" }]
-        ]
-      }
-    });
-  }
-
-  async function sendEarnings(chatId: number, lang: string) {
-    const tasks = await storage.getActiveTasksForUser(chatId);
-    if (tasks.length === 0) {
-      bot?.sendMessage(chatId, t(lang, "noTasks"), { ...getBackButton(lang) });
-      return;
-    }
-
-    const taskButtons = tasks.map(task => ([{ text: task.title, callback_data: `task_${task.id}` }]));
-    bot?.sendMessage(chatId, t(lang, "taskList"), {
-      reply_markup: {
-        inline_keyboard: [
-          ...taskButtons,
-          [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-        ]
-      }
-    });
-  }
-
-  async function sendPartners(chatId: number, lang: string, user: any) {
-    const botMe = await bot?.getMe();
-    const botUsername = botMe?.username;
-    const referralLink = `https://t.me/${botUsername}?start=${user.telegramId}`;
-    const text = t(lang, "partnersTitle") + "\n\n" + t(lang, "partnersDesc") + "\n\n" + t(lang, "referralLink") + "\n" + referralLink;
-    bot?.sendMessage(chatId, text, { parse_mode: "Markdown", ...getBackButton(lang) });
-  }
-
-  async function sendAccountInfo(chatId: number, lang: string, user: any) {
-    const text = t(lang, "accountTitle") + "\n\n" + t(lang, "accountId") + ": " + user.telegramId;
-    bot?.sendMessage(chatId, text, { parse_mode: "Markdown", ...getBackButton(lang) });
-  }
-
-  async function sendInfo(chatId: number, lang: string) {
-    bot?.sendMessage(chatId, t(lang, "infoTitle"), { parse_mode: "Markdown", ...getBackButton(lang) });
-  }
-
-  async function sendAdvertiseMenu(chatId: number, lang: string) {
-    const advertiseKeyboard = {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: t(lang, "advertiseChannel"), callback_data: "ad_channel" }, { text: t(lang, "advertiseBot"), callback_data: "ad_bot" }],
-          [{ text: t(lang, "advertiseMyTasks"), callback_data: "my_tasks" }, { text: t(lang, "back"), callback_data: "back_to_menu" }]
-        ]
-      }
-    };
-    bot?.sendMessage(chatId, t(lang, "advertiseMessage"), { parse_mode: "Markdown", ...advertiseKeyboard });
-  }
-
-  async function handleChannelUrlInput(chatId: number, lang: string, user: any, url: string) {
-    if (!url.startsWith("https://t.me/")) {
-      bot?.sendMessage(chatId, t(lang, "invalidUrl"));
-      return;
-    }
-
-    if (user.balance < 0.25) {
-      bot?.sendMessage(chatId, t(lang, "insufficientForAds"));
-      return;
-    }
-
-    await storage.updateUser(user.id, { balance: user.balance - 0.25 });
-    await storage.createTask({
-      type: "channel",
-      title: "Subscribe to Channel",
-      description: `Subscribe to ${url}`,
-      reward: 0.0001,
-      link: url,
-      creatorId: user.id,
-      maxCompletions: 1000,
-      isActive: true
-    });
-
-    delete userStates[chatId];
-    bot?.sendMessage(chatId, t(lang, "adCreatedSuccess"), { parse_mode: "Markdown" });
-  }
-
-  async function handleBotForwardInput(chatId: number, lang: string, user: any, msg: TelegramBot.Message) {
-    const forwardedBot = msg.forward_from;
-    if (!forwardedBot || !forwardedBot.is_bot) {
-      bot?.sendMessage(chatId, t(lang, "notABotMessage"));
-      return;
-    }
-
-    if (user.balance < 0.25) {
-      bot?.sendMessage(chatId, t(lang, "insufficientForAds"));
-      return;
-    }
-
-    const botUrl = `https://t.me/${forwardedBot.username}`;
-    await storage.updateUser(user.id, { balance: user.balance - 0.25 });
-    await storage.createTask({
-      type: "bot",
-      title: "Start Bot",
-      description: `Start ${forwardedBot.first_name}`,
-      reward: 0.0001,
-      link: botUrl,
-      creatorId: user.id,
-      maxCompletions: 1000,
-      isActive: true
-    });
-
-    delete userStates[chatId];
-    bot?.sendMessage(chatId, t(lang, "adCreatedSuccess"), { parse_mode: "Markdown" });
-  }
 
   // --- Callback Queries ---
   bot.on("callback_query", async (query) => {
@@ -1206,72 +990,6 @@ ${t(lang, "yourBalance")}: ${user.balance.toFixed(4)} TON
         reply_markup: getMainMenuKeyboard(lang).reply_markup
       });
 
-    } else if (query.data === "ad_channel") {
-      userStates[chatId] = { step: "WAITING_FOR_CHANNEL_URL", adType: "channel" };
-      const botMe = await bot?.getMe();
-      const botUsername = botMe?.username;
-      bot?.sendMessage(chatId, t(lang, "advertiseChannelTitle").replace("{botUsername}", botUsername || "bot"), { parse_mode: "Markdown" });
-    } else if (query.data === "ad_bot") {
-      userStates[chatId] = { step: "WAITING_FOR_BOT_FORWARD", adType: "bot" };
-      bot?.sendMessage(chatId, t(lang, "advertiseBotTitle"), { parse_mode: "Markdown" });
-    } else if (query.data === "my_tasks") {
-      const myTasks = await storage.getTasksByCreator(user.id);
-      if (myTasks.length === 0) {
-        bot?.sendMessage(chatId, "You haven't created any tasks yet.", { parse_mode: "Markdown" });
-      } else {
-        for (const task of myTasks) {
-          const remaining = task.maxCompletions - task.currentCompletions;
-          const statusText = task.isActive ? "🟢 Active" : "🔴 Closed";
-          const message = `📢 ${task.type === "channel" ? "Channel Promotion" : "Bot Promotion"}\n\n` +
-            `✅ Completed: ${task.currentCompletions} / ${task.maxCompletions}\n` +
-            `⏳ Remaining: ${remaining}\n\n` +
-            `🎁 Reward per user: ${task.reward} TON\n` +
-            `${statusText}`;
-          bot?.sendMessage(chatId, message, { parse_mode: "Markdown" });
-        }
-      }
-    } else if (query.data.startsWith("task_")) {
-      const taskId = parseInt(query.data.split("_")[1]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-
-      const messageText = task.type === "channel" ? t(lang, "missionChannel") : t(lang, "missionBot");
-      const checkButtonText = task.type === "channel" ? t(lang, "joined") : t(lang, "started");
-      
-      bot?.sendMessage(chatId, messageText, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: task.type === "channel" ? "📢 Subscribe" : "🤖 Join bot", url: task.link }],
-            [{ text: checkButtonText, callback_data: `check_${task.id}` }, { text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      });
-    } else if (query.data.startsWith("check_")) {
-      const taskId = parseInt(query.data.split("_")[1]);
-      const task = await storage.getTask(taskId);
-      if (!task || !task.isActive) {
-        bot?.answerCallbackQuery(query.id, { text: "Task is no longer active." });
-        return;
-      }
-
-      const existing = await storage.getUserTask(user.id, taskId);
-      if (existing && existing.status === "completed") {
-        bot?.answerCallbackQuery(query.id, { text: "Task already completed!" });
-        return;
-      }
-
-      // Instant reward for simplicity in this turn, normally would verify
-      await storage.updateUser(user.id, { balance: user.balance + task.reward });
-      if (existing) {
-        await storage.updateUserTask(existing.id, { status: "completed", verifiedAt: new Date() });
-      } else {
-        await storage.createUserTask({ userId: user.id, taskId, status: "completed", verifiedAt: new Date() });
-      }
-      await storage.incrementTaskCompletion(taskId);
-      
-      bot?.sendMessage(chatId, `✅ Success! You earned ${task.reward} TON.`);
-      bot?.answerCallbackQuery(query.id);
     } else if (query.data === "partners") {
       const botUsername = (await bot?.getMe())?.username;
       const referralLink = `https://t.me/${botUsername}?start=${telegramId}`;
