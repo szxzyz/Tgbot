@@ -78,3 +78,16 @@ Key database tables:
 - `recharts`: Dashboard analytics charts
 - `date-fns`: Date formatting utilities
 - `zod`: Runtime type validation for API contracts
+
+## Recent Changes
+
+### Advertise Flow Update (Feb 2, 2026)
+Updated the bot promotion flow with the following changes:
+- **Advertise Menu**: Shows "📢 Channel | 🤖 Bots" buttons and "↩️ Back"
+- **Bot Promotion Flow**:
+  1. Info screen shows cost (0.250 TON) and task limit (1000 users)
+  2. User enters bot URL (e.g., https://t.me/your_bot) - bot extracts username
+  3. Task auto-publishes with success message (no confirmation screen)
+  4. Auto-posts to admin channel (-1002480439556) with inline claim button
+  5. Users coming via task link see mission screen with "🤖 Start bot" and "✅ Started" buttons
+  6. Verification: User forwards any message from promoted bot for username matching
