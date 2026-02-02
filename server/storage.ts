@@ -19,6 +19,8 @@ export interface IStorage {
   createUserTask(userTask: InsertUserTask): Promise<UserTask>;
   updateUserTask(id: number, updates: Partial<UserTask>): Promise<UserTask>;
   createTask(task: InsertTask): Promise<Task>;
+  getTasksByCreator(creatorId: number): Promise<Task[]>;
+  incrementTaskCompletion(taskId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
