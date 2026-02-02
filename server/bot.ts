@@ -19,6 +19,7 @@ const translations: Record<string, Record<string, string>> = {
     account: "👤 Account",
     earnings: "💸 Earnings",
     withdraw: "🏦 Withdraw",
+    advertise: "📈 Advertise",
     info: "ℹ️ Info",
     back: "↩️ Back",
     subscribe: "🚀 Subscribe",
@@ -61,7 +62,7 @@ const translations: Record<string, Record<string, string>> = {
     infoStep3: "3. Invite friends to earn faster.",
     infoStep4: "4. Withdraw earnings to your wallet.",
     infoNote: "⚠️ *Note:* This is a simulation bot.",
-    earningsTitle: "💸 *Earnings & Tasks*",
+    infoEarnings: "💸 *Earnings & Tasks*",
     noTasks: "Currently, there are no active tasks available.\nPlease check back later.",
     newTasks: "New tasks are available!\nComplete tasks and earn rewards.",
     goToTasks: "👉 Go to the task list 👈",
@@ -102,6 +103,18 @@ const translations: Record<string, Record<string, string>> = {
     started: "✅ Started",
     skip: "↪️ Skip",
     check: "🔄 Check",
+    advertise: "📈 Advertise",
+    advertiseMenu: "📈 What would you like to promote?\n\nChoose an option below 👇🏻",
+    advertiseChannel: "📢 Channel | 🤖 Bots",
+    myTasks: "💼 My Tasks",
+    channelPromoInfo: "📈 Advertise\n↳ Advertise your Telegram Channel or Group\n\nYour link will be shown to thousands of users.\n\n💰 Cost: 0.250 TON\n🎁 Total reward pool: 0.10 TON\n\n📌 Task limit: 1000 users\n💸 Reward per user: 0.0001 TON\n\n🔐 Add this bot (@{botUsername}) as ADMIN\nto verify whether users have joined.\n(This improves approval rate)",
+    enterChannelUrl: "📝 Enter the channel or group URL:",
+    taskPublished: "🎉 Your task has been published successfully!\n\n📢 Promotion is now live\n👥 Max participants: 1000\n💸 Reward per user: 0.0001 TON\n\n📌 Task auto-posted in Task Channel",
+    botPromoInfo: "📈 Advertise\n↳ Advertise your Telegram Bot\n\nYour bot will be shown to thousands of users.\n\n💰 Cost: 0.250 TON\n🎁 Total reward pool: 0.10 TON\n\n📌 Task limit: 1000 users\n💸 Reward per user: 0.0001 TON",
+    forwardBotMsg: "📌 Forward ANY message from the bot you want to promote here for verification.",
+    botVerified: "✅ Bot verified successfully.\n\nChoose what you want to do next 👇",
+    publishTask: "📢 Publish Task",
+    addReferralLink: "🔗 Add referral link",
   },
   ru: {
     selectLanguage: "Select language / Выберите язык",
@@ -116,6 +129,7 @@ const translations: Record<string, Record<string, string>> = {
     account: "👤 Аккаунт",
     earnings: "💸 Заработок",
     withdraw: "🏦 Вывод",
+    advertise: "📈 Реклама",
     info: "ℹ️ Инфо",
     back: "↩️ Назад",
     subscribe: "🚀 Подписаться",
@@ -158,7 +172,7 @@ const translations: Record<string, Record<string, string>> = {
     infoStep3: "3. Приглашайте друзей для быстрого заработка.",
     infoStep4: "4. Выводите заработок на кошелёк.",
     infoNote: "⚠️ *Примечание:* Это симуляционный бот.",
-    earningsTitle: "💸 *Заработок и задания*",
+    infoEarnings: "💸 *Заработок и задания*",
     noTasks: "В данный момент нет активных заданий.\nПроверьте позже.",
     newTasks: "Доступны новые задания!\nВыполняйте и получайте награды.",
     goToTasks: "👉 Перейти к заданиям 👈",
@@ -199,394 +213,18 @@ const translations: Record<string, Record<string, string>> = {
     started: "✅ Запущен",
     skip: "↪️ Пропустить",
     check: "🔄 Проверить",
-  },
-  es: {
-    selectLanguage: "Select language / Выберите язык",
-    dashboard: "🪪 *Panel de control*",
-    balance: "💰 Saldo",
-    miningSpeed: "⛏️ Velocidad de minería",
-    miningTagline: "TON — Minería sin límites",
-    refresh: "♻️ Actualizar",
-    upgrade: "🚀 Mejorar",
-    promo: "🎁 Promo",
-    partners: "👥 Socios",
-    account: "👤 Cuenta",
-    earnings: "💸 Ganancias",
-    withdraw: "🏦 Retirar",
-    info: "ℹ️ Info",
-    back: "↩️ Volver",
-    subscribe: "🚀 Suscribirse",
-    subscribed: "✅ Ya me suscribí",
-    subscribeMessage: "😉 Asegúrate de suscribirte a nuestro canal antes de comenzar",
-    letsGo: "🏂 ¡Vamos!",
-    userNotFound: "⚠️ Usuario no encontrado. Escribe /start",
-    maxLevelReached: "🚀 ¡Nivel máximo alcanzado!",
-    upgradeTitle: "🚀 *Mejorar velocidad de minería*",
-    currentLevel: "Nivel actual",
-    nextLevel: "Siguiente nivel",
-    speed: "Velocidad",
-    cost: "Costo",
-    yourBalance: "💰 Tu saldo",
-    buyLevel: "Comprar nivel",
-    upgradeOneLevel: "⚠️ Solo puedes mejorar un nivel a la vez.",
-    insufficientFunds: "❌ ¡Fondos insuficientes!",
-    upgradeSuccess: "✅ ¡Mejora exitosa!",
-    partnersTitle: "👥 *Programa de socios*",
-    partnersDesc: "¡Invita amigos y gana TON!",
-    partnersReward: "Gana *{amount} TON* por cada referido activo",
-    partnersBonus: "+10% bonus de velocidad (activo con referidos)",
-    shareReferral: "🔗 Compartir",
-    shareReferralMessage: "🚀 ¡Empieza a ganar TON conmigo!\n\nMina TON cada segundo con este bot.\nÚnete ahora y obtén minería más rápida 💰\n\n👉 Empieza aquí: {link}",
-    language: "🌎 Idioma",
-    support: "📞 Soporte",
-    notification: "🔔 Notificación",
-    notificationOn: "🔔 Notificaciones: ON",
-    notificationOff: "🔕 Notificaciones: OFF",
-    notificationToggled: "¡Notificaciones actualizadas!",
-    supportMessage: "📞 *Soporte*\n\nPara cualquier problema o pregunta, contacta a nuestro equipo.",
-    referralLink: "🔗 *Tu enlace de referido:*",
-    totalReferrals: "Total de referidos",
-    infoTitle: "ℹ️ *Información*",
-    infoWhat: "🤖 *¿Qué es este bot?*",
-    infoWhatDesc: "Es un simulador de minería en la nube de TON. Puedes minar TON, mejorar tu equipo y retirar recompensas reales.",
-    infoHow: "⚙️ *¿Cómo funciona?*",
-    infoStep1: "1. Presiona \"Actualizar\" para recoger TON.",
-    infoStep2: "2. Usa \"Mejorar\" para aumentar tu velocidad.",
-    infoStep3: "3. Invita amigos para ganar más rápido.",
-    infoStep4: "4. Retira ganancias a tu billetera.",
-    infoNote: "⚠️ *Nota:* Este es un bot de simulación.",
-    earningsTitle: "💸 *Ganancias y tareas*",
-    noTasks: "No hay tareas activas disponibles.\nVuelve más tarde.",
-    newTasks: "¡Nuevas tareas disponibles!\nCompleta tareas y gana recompensas.",
-    goToTasks: "👉 Ir a la lista de tareas 👈",
-    taskList: "📌 *Lista de tareas*",
-    channelTask: "🔹 Tarea: Suscribirse al canal",
-    botTask: "🔹 Tarea: Iniciar el bot",
-    accountTitle: "👤 *Info de cuenta*",
-    accountId: "🆔 ID",
-    accountLang: "🗣️ Idioma",
-    accountReferrals: "👥 Referidos",
-    accountJoined: "📅 Registro",
-    accountLevel: "⚡ Nivel",
-    accountStatus: "🟢 Estado",
-    withdrawTitle: "🏦 *Retirar fondos*",
-    minWithdraw: "⚠️ Retiro mínimo",
-    requestWithdraw: "✅ Solicitar retiro",
-    insufficientBalance: "❌ Saldo insuficiente",
-    enterWallet: "🏦 Ingresa tu dirección de billetera TON:",
-    enterAmount: "💰 Ingresa el monto a retirar:",
-    invalidAmount: "❌ Monto inválido.",
-    insufficientBalanceMsg: "❌ Saldo insuficiente.",
-    withdrawPending: "✅ ¡Solicitud enviada! Estado: Pendiente",
-    notSubscribed: "❌ ¡Aún no estás suscrito!",
-    subscriptionError: "❌ Error al verificar suscripción.",
-    newReferral: "👥 ¡Nuevo referido! Ganaste {amount} TON.",
-    verificationPending: "⏳ Verificación en proceso. Espera hasta 7 días.",
-    channelTaskTitle: "📌 *Nueva tarea: Suscribirse al canal*",
-    channelTaskStep1: "➡️ Únete al canal usando el botón",
-    channelTaskStep2: "➡️ Permanece suscrito por al menos 7 días",
-    channelTaskNote: "⚠️ La recompensa se acreditará después de la verificación.",
-    botTaskTitle: "📌 *Nueva tarea: Iniciar el bot*",
-    botTaskStep1: "➡️ Abre el bot usando el botón",
-    botTaskStep2: "➡️ NO bloquees el bot por al menos 7 días",
-    botTaskWarning: "❗ Bloquearlo antes de 7 días puede generar penalización",
-    missionChannel: "👉🏻 *Misión: Únete al canal.*\n\n❓ Después de unirte, presiona « ✅ Me uní » abajo.",
-    missionBot: "👉🏻 *Misión: Interactúa con el bot.*\n\n❓ Presiona « ✅ Iniciado » y reenvía CUALQUIER mensaje\nde ese bot aquí para verificación.",
-    joined: "✅ Me uní",
-    started: "✅ Iniciado",
-    skip: "↪️ Omitir",
-    check: "🔄 Verificar",
-  },
-  pt: {
-    selectLanguage: "Select language / Выберите язык",
-    dashboard: "🪪 *Painel*",
-    balance: "💰 Saldo",
-    miningSpeed: "⛏️ Velocidade de mineração",
-    miningTagline: "TON — Mineração sem limites",
-    refresh: "♻️ Atualizar",
-    upgrade: "🚀 Melhorar",
-    promo: "🎁 Promo",
-    partners: "👥 Parceiros",
-    account: "👤 Conta",
-    earnings: "💸 Ganhos",
-    withdraw: "🏦 Sacar",
-    info: "ℹ️ Info",
-    back: "↩️ Voltar",
-    subscribe: "🚀 Inscrever-se",
-    subscribed: "✅ Já me inscrevi",
-    subscribeMessage: "😉 Inscreva-se no nosso canal antes de começar",
-    letsGo: "🏂 Vamos lá!",
-    userNotFound: "⚠️ Usuário não encontrado. Digite /start",
-    maxLevelReached: "🚀 Nível máximo atingido!",
-    upgradeTitle: "🚀 *Melhorar velocidade de mineração*",
-    currentLevel: "Nível atual",
-    nextLevel: "Próximo nível",
-    speed: "Velocidade",
-    cost: "Custo",
-    yourBalance: "💰 Seu saldo",
-    buyLevel: "Comprar nível",
-    upgradeOneLevel: "⚠️ Você só pode melhorar um nível por vez.",
-    insufficientFunds: "❌ Fundos insuficientes!",
-    upgradeSuccess: "✅ Melhoria realizada!",
-    partnersTitle: "👥 *Programa de parceiros*",
-    partnersDesc: "Convide amigos e ganhe TON!",
-    partnersReward: "Ganhe *{amount} TON* por cada indicação ativa",
-    partnersBonus: "+10% bônus de velocidade (ativo com indicações)",
-    shareReferral: "🔗 Compartilhar",
-    shareReferralMessage: "🚀 Comece a ganhar TON comigo!\n\nMinere TON a cada segundo com este bot.\nJunte-se e ganhe mineração mais rápida 💰\n\n👉 Comece aqui: {link}",
-    language: "🌎 Idioma",
-    support: "📞 Suporte",
-    notification: "🔔 Notificação",
-    notificationOn: "🔔 Notificações: ON",
-    notificationOff: "🔕 Notificações: OFF",
-    notificationToggled: "Notificações atualizadas!",
-    supportMessage: "📞 *Suporte*\n\nPara qualquer problema ou dúvida, contate nossa equipe.",
-    referralLink: "🔗 *Seu link de indicação:*",
-    totalReferrals: "Total de indicações",
-    infoTitle: "ℹ️ *Informações*",
-    infoWhat: "🤖 *O que é este bot?*",
-    infoWhatDesc: "É um simulador de mineração TON na nuvem. Você pode minerar TON, melhorar seu equipamento e sacar recompensas.",
-    infoHow: "⚙️ *Como funciona?*",
-    infoStep1: "1. Pressione \"Atualizar\" para coletar TON.",
-    infoStep2: "2. Use \"Melhorar\" para aumentar sua velocidade.",
-    infoStep3: "3. Convide amigos para ganhar mais rápido.",
-    infoStep4: "4. Saque ganhos para sua carteira.",
-    infoNote: "⚠️ *Nota:* Este é um bot de simulação.",
-    earningsTitle: "💸 *Ganhos e tarefas*",
-    noTasks: "Não há tarefas ativas disponíveis.\nVolte mais tarde.",
-    newTasks: "Novas tarefas disponíveis!\nComplete tarefas e ganhe recompensas.",
-    goToTasks: "👉 Ir para lista de tarefas 👈",
-    taskList: "📌 *Lista de tarefas*",
-    channelTask: "🔹 Tarefa: Inscrever-se no canal",
-    botTask: "🔹 Tarefa: Iniciar o bot",
-    accountTitle: "👤 *Info da conta*",
-    accountId: "🆔 ID",
-    accountLang: "🗣️ Idioma",
-    accountReferrals: "👥 Indicações",
-    accountJoined: "📅 Cadastro",
-    accountLevel: "⚡ Nível",
-    accountStatus: "🟢 Status",
-    withdrawTitle: "🏦 *Sacar fundos*",
-    minWithdraw: "⚠️ Saque mínimo",
-    requestWithdraw: "✅ Solicitar saque",
-    insufficientBalance: "❌ Saldo insuficiente",
-    enterWallet: "🏦 Digite o endereço da sua carteira TON:",
-    enterAmount: "💰 Digite o valor para sacar:",
-    invalidAmount: "❌ Valor inválido.",
-    insufficientBalanceMsg: "❌ Saldo insuficiente.",
-    withdrawPending: "✅ Solicitação enviada! Status: Pendente",
-    notSubscribed: "❌ Você ainda não está inscrito!",
-    subscriptionError: "❌ Erro ao verificar inscrição.",
-    newReferral: "👥 Nova indicação! Você ganhou {amount} TON.",
-    verificationPending: "⏳ Verificação em andamento. Aguarde até 7 dias.",
-    channelTaskTitle: "📌 *Nova tarefa: Inscrever-se no canal*",
-    channelTaskStep1: "➡️ Entre no canal usando o botão",
-    channelTaskStep2: "➡️ Fique inscrito por pelo menos 7 dias",
-    channelTaskNote: "⚠️ A recompensa será creditada após verificação.",
-    botTaskTitle: "📌 *Nova tarefa: Iniciar o bot*",
-    botTaskStep1: "➡️ Abra o bot usando o botão",
-    botTaskStep2: "➡️ NÃO bloqueie o bot por pelo menos 7 dias",
-    botTaskWarning: "❗ Bloquear antes de 7 dias pode gerar penalidade",
-    missionChannel: "👉🏻 *Missão: Entre no canal.*\n\n❓ Depois de entrar, pressione « ✅ Entrei » abaixo.",
-    missionBot: "👉🏻 *Missão: Interaja com o bot.*\n\n❓ Pressione « ✅ Iniciado » e encaminhe QUALQUER mensagem\ndesse bot aqui para verificação.",
-    joined: "✅ Entrei",
-    started: "✅ Iniciado",
-    skip: "↪️ Pular",
-    check: "🔄 Verificar",
-  },
-  fr: {
-    selectLanguage: "Select language / Выберите язык",
-    dashboard: "🪪 *Tableau de bord*",
-    balance: "💰 Solde",
-    miningSpeed: "⛏️ Vitesse de minage",
-    miningTagline: "TON — Minage sans limites",
-    refresh: "♻️ Actualiser",
-    upgrade: "🚀 Améliorer",
-    promo: "🎁 Promo",
-    partners: "👥 Partenaires",
-    account: "👤 Compte",
-    earnings: "💸 Gains",
-    withdraw: "🏦 Retrait",
-    info: "ℹ️ Info",
-    back: "↩️ Retour",
-    subscribe: "🚀 S'abonner",
-    subscribed: "✅ Je suis abonné",
-    subscribeMessage: "😉 Abonnez-vous à notre chaîne avant de commencer",
-    letsGo: "🏂 C'est parti!",
-    userNotFound: "⚠️ Utilisateur non trouvé. Tapez /start",
-    maxLevelReached: "🚀 Niveau maximum atteint!",
-    upgradeTitle: "🚀 *Améliorer la vitesse de minage*",
-    currentLevel: "Niveau actuel",
-    nextLevel: "Niveau suivant",
-    speed: "Vitesse",
-    cost: "Coût",
-    yourBalance: "💰 Votre solde",
-    buyLevel: "Acheter niveau",
-    upgradeOneLevel: "⚠️ Vous ne pouvez améliorer qu'un niveau à la fois.",
-    insufficientFunds: "❌ Fonds insuffisants!",
-    upgradeSuccess: "✅ Amélioration réussie!",
-    partnersTitle: "👥 *Programme partenaires*",
-    partnersDesc: "Invitez des amis et gagnez des TON!",
-    partnersReward: "Gagnez *{amount} TON* par parrainage actif",
-    partnersBonus: "+10% bonus de vitesse (actif avec parrainages)",
-    shareReferral: "🔗 Partager",
-    shareReferralMessage: "🚀 Commence à gagner des TON avec moi!\n\nMine des TON chaque seconde avec ce bot.\nRejoins-nous et obtiens un minage plus rapide 💰\n\n👉 Commence ici: {link}",
-    language: "🌎 Langue",
-    support: "📞 Support",
-    notification: "🔔 Notification",
-    notificationOn: "🔔 Notifications: ON",
-    notificationOff: "🔕 Notifications: OFF",
-    notificationToggled: "Notifications mises à jour!",
-    supportMessage: "📞 *Support*\n\nPour toute question, contactez notre équipe.",
-    referralLink: "🔗 *Votre lien de parrainage:*",
-    totalReferrals: "Total parrainages",
-    infoTitle: "ℹ️ *Informations*",
-    infoWhat: "🤖 *Qu'est-ce que ce bot?*",
-    infoWhatDesc: "C'est un simulateur de minage cloud TON. Minez, améliorez et retirez des récompenses.",
-    infoHow: "⚙️ *Comment ça marche?*",
-    infoStep1: "1. Appuyez sur \"Actualiser\" pour collecter les TON.",
-    infoStep2: "2. Utilisez \"Améliorer\" pour augmenter votre vitesse.",
-    infoStep3: "3. Invitez des amis pour gagner plus vite.",
-    infoStep4: "4. Retirez vos gains vers votre portefeuille.",
-    infoNote: "⚠️ *Note:* C'est un bot de simulation.",
-    earningsTitle: "💸 *Gains et tâches*",
-    noTasks: "Aucune tâche active disponible.\nRevenez plus tard.",
-    newTasks: "Nouvelles tâches disponibles!\nComplétez-les pour gagner des récompenses.",
-    goToTasks: "👉 Aller à la liste des tâches 👈",
-    taskList: "📌 *Liste des tâches*",
-    channelTask: "🔹 Tâche: S'abonner à la chaîne",
-    botTask: "🔹 Tâche: Démarrer le bot",
-    accountTitle: "👤 *Info du compte*",
-    accountId: "🆔 ID",
-    accountLang: "🗣️ Langue",
-    accountReferrals: "👥 Parrainages",
-    accountJoined: "📅 Inscription",
-    accountLevel: "⚡ Niveau",
-    accountStatus: "🟢 Statut",
-    withdrawTitle: "🏦 *Retirer des fonds*",
-    minWithdraw: "⚠️ Retrait minimum",
-    requestWithdraw: "✅ Demander un retrait",
-    insufficientBalance: "❌ Solde insuffisant",
-    enterWallet: "🏦 Entrez l'adresse de votre portefeuille TON:",
-    enterAmount: "💰 Entrez le montant à retirer:",
-    invalidAmount: "❌ Montant invalide.",
-    insufficientBalanceMsg: "❌ Solde insuffisant.",
-    withdrawPending: "✅ Demande envoyée! Statut: En attente",
-    notSubscribed: "❌ Vous n'êtes pas encore abonné!",
-    subscriptionError: "❌ Erreur lors de la vérification.",
-    newReferral: "👥 Nouveau parrainage! Vous avez gagné {amount} TON.",
-    verificationPending: "⏳ Vérification en cours. Attendez jusqu'à 7 jours.",
-    channelTaskTitle: "📌 *Nouvelle tâche: S'abonner à la chaîne*",
-    channelTaskStep1: "➡️ Rejoignez la chaîne via le bouton",
-    channelTaskStep2: "➡️ Restez abonné pendant au moins 7 jours",
-    channelTaskNote: "⚠️ La récompense sera créditée après vérification.",
-    botTaskTitle: "📌 *Nouvelle tâche: Démarrer le bot*",
-    botTaskStep1: "➡️ Ouvrez le bot via le bouton",
-    botTaskStep2: "➡️ NE bloquez PAS le bot pendant 7 jours",
-    botTaskWarning: "❗ Bloquer avant 7 jours peut entraîner une pénalité",
-    missionChannel: "👉🏻 *Mission: Rejoignez la chaîne.*\n\n❓ Après avoir rejoint, appuyez sur « ✅ Rejoint » ci-dessous.",
-    missionBot: "👉🏻 *Mission: Interagissez avec le bot.*\n\n❓ Appuyez sur « ✅ Démarré » et transférez N'IMPORTE QUEL message\nde ce bot ici pour vérification.",
-    joined: "✅ Rejoint",
-    started: "✅ Démarré",
-    skip: "↪️ Passer",
-    check: "🔄 Vérifier",
-  },
-  ar: {
-    selectLanguage: "Select language / Выберите язык",
-    dashboard: "🪪 *لوحة التحكم*",
-    balance: "💰 الرصيد",
-    miningSpeed: "⛏️ سرعة التعدين",
-    miningTagline: "TON — تعدين بلا حدود",
-    refresh: "♻️ تحديث",
-    upgrade: "🚀 ترقية",
-    promo: "🎁 عروض",
-    partners: "👥 شركاء",
-    account: "👤 الحساب",
-    earnings: "💸 الأرباح",
-    withdraw: "🏦 سحب",
-    info: "ℹ️ معلومات",
-    back: "↩️ رجوع",
-    subscribe: "🚀 اشتراك",
-    subscribed: "✅ مشترك",
-    subscribeMessage: "😉 اشترك في قناتنا قبل البدء",
-    letsGo: "🏂 هيا بنا!",
-    userNotFound: "⚠️ المستخدم غير موجود. اكتب /start",
-    maxLevelReached: "🚀 وصلت للمستوى الأقصى!",
-    upgradeTitle: "🚀 *ترقية سرعة التعدين*",
-    currentLevel: "المستوى الحالي",
-    nextLevel: "المستوى التالي",
-    speed: "السرعة",
-    cost: "التكلفة",
-    yourBalance: "💰 رصيدك",
-    buyLevel: "شراء المستوى",
-    upgradeOneLevel: "⚠️ يمكنك الترقية مستوى واحد فقط.",
-    insufficientFunds: "❌ رصيد غير كافٍ!",
-    upgradeSuccess: "✅ تمت الترقية!",
-    partnersTitle: "👥 *برنامج الشركاء*",
-    partnersDesc: "ادعُ أصدقاءك واربح TON!",
-    partnersReward: "اربح *{amount} TON* لكل إحالة نشطة",
-    partnersBonus: "+10% مكافأة السرعة (نشط مع الإحالات)",
-    shareReferral: "🔗 مشاركة",
-    shareReferralMessage: "🚀 ابدأ ربح TON معي!\n\nعدّن TON كل ثانية مع هذا البوت.\nانضم واحصل على تعدين أسرع 💰\n\n👉 ابدأ هنا: {link}",
-    language: "🌎 اللغة",
-    support: "📞 الدعم",
-    notification: "🔔 الإشعارات",
-    notificationOn: "🔔 الإشعارات: مفعّل",
-    notificationOff: "🔕 الإشعارات: معطّل",
-    notificationToggled: "تم تحديث الإشعارات!",
-    supportMessage: "📞 *الدعم*\n\nلأي مشكلة أو سؤال، تواصل مع فريق الدعم.",
-    referralLink: "🔗 *رابط الإحالة الخاص بك:*",
-    totalReferrals: "إجمالي الإحالات",
-    infoTitle: "ℹ️ *معلومات*",
-    infoWhat: "🤖 *ما هذا البوت؟*",
-    infoWhatDesc: "هذا محاكي تعدين TON سحابي. يمكنك التعدين والترقية وسحب المكافآت.",
-    infoHow: "⚙️ *كيف يعمل؟*",
-    infoStep1: "1. اضغط \"تحديث\" لجمع TON.",
-    infoStep2: "2. استخدم \"ترقية\" لزيادة السرعة.",
-    infoStep3: "3. ادعُ أصدقاء للربح أسرع.",
-    infoStep4: "4. اسحب أرباحك لمحفظتك.",
-    infoNote: "⚠️ *ملاحظة:* هذا بوت محاكاة.",
-    earningsTitle: "💸 *الأرباح والمهام*",
-    noTasks: "لا توجد مهام نشطة حالياً.\nعد لاحقاً.",
-    newTasks: "مهام جديدة متاحة!\nأكمل المهام واربح مكافآت.",
-    goToTasks: "👉 الذهاب لقائمة المهام 👈",
-    taskList: "📌 *قائمة المهام*",
-    channelTask: "🔹 مهمة: الاشتراك في القناة",
-    botTask: "🔹 مهمة: تشغيل البوت",
-    accountTitle: "👤 *معلومات الحساب*",
-    accountId: "🆔 المعرف",
-    accountLang: "🗣️ اللغة",
-    accountReferrals: "👥 الإحالات",
-    accountJoined: "📅 التسجيل",
-    accountLevel: "⚡ المستوى",
-    accountStatus: "🟢 الحالة",
-    withdrawTitle: "🏦 *سحب الأموال*",
-    minWithdraw: "⚠️ الحد الأدنى للسحب",
-    requestWithdraw: "✅ طلب سحب",
-    insufficientBalance: "❌ رصيد غير كافٍ",
-    enterWallet: "🏦 أدخل عنوان محفظة TON:",
-    enterAmount: "💰 أدخل المبلغ للسحب:",
-    invalidAmount: "❌ مبلغ غير صالح.",
-    insufficientBalanceMsg: "❌ رصيد غير كافٍ.",
-    withdrawPending: "✅ تم إرسال الطلب! الحالة: قيد الانتظار",
-    notSubscribed: "❌ لم تشترك بعد!",
-    subscriptionError: "❌ خطأ في التحقق من الاشتراك.",
-    newReferral: "👥 إحالة جديدة! ربحت {amount} TON.",
-    verificationPending: "⏳ التحقق جارٍ. انتظر حتى 7 أيام.",
-    channelTaskTitle: "📌 *مهمة جديدة: الاشتراك في القناة*",
-    channelTaskStep1: "➡️ انضم للقناة عبر الزر",
-    channelTaskStep2: "➡️ ابقَ مشتركاً لمدة 7 أيام على الأقل",
-    channelTaskNote: "⚠️ ستُضاف المكافأة بعد التحقق.",
-    botTaskTitle: "📌 *مهمة جديدة: تشغيل البوت*",
-    botTaskStep1: "➡️ افتح البوت عبر الزر",
-    botTaskStep2: "➡️ لا تحظر البوت لمدة 7 أيام",
-    botTaskWarning: "❗ الحظر قبل 7 أيام قد يؤدي لعقوبة",
-    missionChannel: "👉🏻 *المهمة: انضم للقناة.*\n\n❓ بعد الانضمام، اضغط « ✅ انضممت » أدناه.",
-    missionBot: "👉🏻 *المهمة: تفاعل مع البوت.*\n\n❓ اضغط « ✅ تم التشغيل » وأعد توجيه أي رسالة\nمن ذلك البوت هنا للتحقق.",
-    joined: "✅ انضممت",
-    started: "✅ تم التشغيل",
-    skip: "↪️ تخطي",
-    check: "🔄 تحقق",
+    advertise: "📈 Реклама",
+    advertiseMenu: "📈 Что бы вы хотели продвигать?\n\nВыберите вариант ниже 👇🏻",
+    advertiseChannel: "📢 Канал | 🤖 Боты",
+    myTasks: "💼 Мои задания",
+    channelPromoInfo: "📈 Реклама\n↳ Рекламируйте свой Telegram-канал или группу\n\nВаша ссылка будет показана тысячам пользователей.\n\n💰 Стоимость: 0.250 TON\n🎁 Общий пул наград: 0.10 TON\n\n📌 Лимит заданий: 1000 пользователей\n💸 Награда за пользователя: 0.0001 TON\n\n🔐 Добавьте этого бота (@{botUsername}) в качестве АДМИНИСТРАТОРА\nчтобы проверять, присоединились ли пользователи.\n(Это повышает процент одобрения)",
+    enterChannelUrl: "📝 Введите URL канала или группы:",
+    taskPublished: "🎉 Ваше задание успешно опубликовано!\n\n📢 Реклама запущена\n👥 Макс. участников: 1000\n💸 Награда за пользователя: 0.0001 TON\n\n📌 Задание автоматически опубликовано в канале заданий",
+    botPromoInfo: "📈 Реклама\n↳ Рекламируйте свой Telegram-бот\n\nВаш бот будет показан тысячам пользователей.\n\n💰 Стоимость: 0.250 TON\n🎁 Общий пул наград: 0.10 TON\n\n📌 Лимит заданий: 1000 пользователей\n💸 Награда за пользователя: 0.0001 TON",
+    forwardBotMsg: "📌 Перешлите ЛЮБОЕ сообщение от бота, которого вы хотите продвигать, сюда для проверки.",
+    botVerified: "✅ Бот успешно проверен.\n\nВыберите, что делать дальше 👇",
+    publishTask: "📢 Опубликовать задание",
+    addReferralLink: "🔗 Добавить реф. ссылку",
   },
 };
 
@@ -741,6 +379,7 @@ export function setupBot() {
           [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
           [{ text: t(lang, "earnings"), callback_data: "earnings" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
+          [{ text: t(lang, "advertise"), callback_data: "advertise_menu" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
         ]
       }
@@ -829,11 +468,71 @@ ${t(lang, "miningTagline")}
   });
 
   bot.on("message", async (msg) => {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from?.id.toString();
+    if (!telegramId) return;
+    const user = await storage.getUserByTelegramId(telegramId);
+    if (!user) return;
+    const lang = user.language;
+
+    // Handle replies for advertising
+    if (msg.reply_to_message) {
+      const replyText = msg.reply_to_message.text;
+      
+      // Channel URL Promotion
+      if (replyText === t(lang, "enterChannelUrl")) {
+        const url = msg.text;
+        if (url && (url.startsWith("https://t.me/") || url.startsWith("@"))) {
+          const cost = 0.250;
+          if (user.balance < cost) {
+            bot?.sendMessage(chatId, t(lang, "insufficientFunds"));
+            return;
+          }
+
+          await storage.updateUser(user.id, { balance: user.balance - cost });
+          await storage.createTask({
+            type: "channel",
+            title: `Join ${url}`,
+            description: "Join the channel to earn reward",
+            reward: 0.0001,
+            link: url,
+            creatorId: user.id,
+            maxCompletions: 1000,
+            currentCompletions: 0,
+            isActive: true
+          });
+
+          bot?.sendMessage(chatId, t(lang, "taskPublished"), { parse_mode: "Markdown" });
+        } else {
+          bot?.sendMessage(chatId, "❌ Invalid URL. Please try again.");
+        }
+        return;
+      }
+
+      // Bot Forward Promotion
+      if (replyText === t(lang, "forwardBotMsg")) {
+        if (msg.forward_from && msg.forward_from.is_bot) {
+          const botUser = msg.forward_from.username;
+          
+          const confirmText = t(lang, "botVerified");
+          const keyboard = {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: t(lang, "publishTask"), callback_data: `publish_bot_${botUser}` }],
+                [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+              ]
+            }
+          };
+          bot?.sendMessage(chatId, confirmText, keyboard);
+        } else {
+          bot?.sendMessage(chatId, "❌ Please forward a message from a BOT.");
+        }
+        return;
+      }
+    }
+
     if (msg.text && ["🇷🇺 Русский", "🇬🇧 English", "🇪🇸 Español", "🇵🇹 Português", "🇫🇷 Français", "🇾🇪 العربية"].includes(msg.text)) {
-      const telegramId = msg.from?.id.toString();
-      if (!telegramId) return;
-      const user = await storage.getUserByTelegramId(telegramId);
-      if (user && !user.language) {
+      if (!user.language) {
         const langMap: Record<string, string> = {
           "🇷🇺 Русский": "ru", "🇬🇧 English": "en", "🇪🇸 Español": "es",
           "🇵🇹 Português": "pt", "🇫🇷 Français": "fr", "🇾🇪 العربية": "ar"
@@ -880,17 +579,120 @@ ${t(lang, "miningTagline")}
       return;
     }
 
-    bot?.answerCallbackQuery(query.id);
-
     const user = await storage.getUserByTelegramId(telegramId);
     if (!user) {
       bot?.sendMessage(chatId, t(null, "userNotFound"));
       return;
     }
-
     const lang = user.language;
 
-    if (query.data === "back_to_menu" || query.data === "refresh") {
+    if (query.data === "advertise_menu") {
+      const text = t(lang, "advertiseMenu");
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "📢 Channel", callback_data: "promo_channel_info" }],
+            [{ text: "🤖 Bots", callback_data: "promo_bot_info" }],
+            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
+            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
+          ]
+        }
+      };
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: keyboard.reply_markup
+      });
+
+    } else if (query.data === "promo_channel_info") {
+      const text = t(lang, "channelPromoInfo").replace("{botUsername}", (await bot?.getMe())?.username || "bot");
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "📢 Publish Task", callback_data: "promo_channel_start" }],
+            [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+          ]
+        }
+      };
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: keyboard.reply_markup
+      });
+
+    } else if (query.data === "promo_bot_info") {
+      const text = t(lang, "botPromoInfo");
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🤖 Start Bot Promotion", callback_data: "promo_bot_start" }],
+            [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+          ]
+        }
+      };
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: keyboard.reply_markup
+      });
+
+    } else if (query.data === "promo_channel_start") {
+      bot?.sendMessage(chatId, t(lang, "enterChannelUrl"), { reply_markup: { force_reply: true } });
+      bot?.answerCallbackQuery(query.id);
+
+    } else if (query.data === "promo_bot_start") {
+      bot?.sendMessage(chatId, t(lang, "forwardBotMsg"), { reply_markup: { force_reply: true } });
+      bot?.answerCallbackQuery(query.id);
+
+    } else if (query.data === "my_tasks") {
+      const userTasks = await storage.getTasksByCreator(user.id);
+      let text = t(lang, "myTasks") + "\n\n";
+      if (userTasks.length === 0) {
+        text += t(lang, "noTasks");
+      } else {
+        userTasks.forEach(task => {
+          text += `📌 *${task.title}*\nStatus: ${task.isActive ? "Active" : "Completed"}\nCompletions: ${task.currentCompletions}/${task.maxCompletions}\n\n`;
+        });
+      }
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: getBackButton(lang).reply_markup
+      });
+
+    } else if (query.data.startsWith("publish_bot_")) {
+      const botUser = query.data.split("_")[2];
+      const cost = 0.250;
+      if (user.balance < cost) {
+        bot?.answerCallbackQuery(query.id, { text: t(lang, "insufficientFunds"), show_alert: true });
+        return;
+      }
+
+      await storage.updateUser(user.id, { balance: user.balance - cost });
+      await storage.createTask({
+        type: "bot",
+        title: `Start @${botUser}`,
+        description: "Start the bot to earn reward",
+        reward: 0.0001,
+        link: `https://t.me/${botUser}`,
+        creatorId: user.id,
+        maxCompletions: 1000,
+        currentCompletions: 0,
+        isActive: true
+      });
+
+      bot?.editMessageText(t(lang, "taskPublished"), {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: getBackButton(lang).reply_markup
+      });
+
+    } else if (query.data === "back_to_menu" || query.data === "refresh") {
       const now = Date.now();
       const lastClaim = user.lastClaimTime;
       const diffSeconds = (now - lastClaim) / 1000;
@@ -1259,13 +1061,10 @@ ${t(lang, "minWithdraw")}: ${minWithdraw} TON
                          return;
                      }
 
-                     await storage.updateUser(user.id, {
-                         balance: freshUser.balance - amount
-                     });
-
+                     await storage.updateUser(freshUser.id, { balance: freshUser.balance - amount });
                      await storage.createWithdrawal({
-                         userId: user.id,
-                         amount: amount,
+                         userId: freshUser.id,
+                         amount,
                          walletAddress: wallet,
                          status: "pending"
                      });
@@ -1275,111 +1074,43 @@ ${t(lang, "minWithdraw")}: ${minWithdraw} TON
              }
          });
       });
-    } else if (query.data === "promo") {
-      bot?.answerCallbackQuery(query.id, { text: "Coming soon!", show_alert: true });
-    } else if (query.data === "no_balance") {
-      bot?.answerCallbackQuery(query.id, { text: t(lang, "insufficientFunds"), show_alert: true });
-    } else if (query.data === "share_referral") {
-      const botUsername = (await bot?.getMe())?.username;
-      const referralLink = `https://t.me/${botUsername}?start=${telegramId}`;
-      const shareMessage = t(lang, "shareReferralMessage").replace("{link}", referralLink);
-      
-      await bot?.sendMessage(chatId, shareMessage, { parse_mode: "Markdown" });
-      
-    } else if (query.data === "change_language") {
-      const languageInlineKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🇷🇺 Русский", callback_data: "set_lang_ru" }, { text: "🇬🇧 English", callback_data: "set_lang_en" }],
-            [{ text: "🇪🇸 Español", callback_data: "set_lang_es" }, { text: "🇵🇹 Português", callback_data: "set_lang_pt" }],
-            [{ text: "🇫🇷 Français", callback_data: "set_lang_fr" }, { text: "🇾🇪 العربية", callback_data: "set_lang_ar" }],
-            [{ text: t(lang, "back"), callback_data: "account" }]
-          ]
-        }
-      };
-      bot?.editMessageText(t(null, "selectLanguage"), {
-        chat_id: chatId,
-        message_id: messageId,
-        reply_markup: languageInlineKeyboard.reply_markup
-      });
-      
-    } else if (query.data.startsWith("set_lang_")) {
-      const newLang = query.data.split("_")[2];
-      await storage.updateUser(user.id, { language: newLang });
-      bot?.answerCallbackQuery(query.id, { text: "Language updated!", show_alert: true });
-      
-      const notifStatus = (user as any).notificationsEnabled !== false;
-      const text = `
-${t(newLang, "accountTitle")}
 
-${t(newLang, "accountId")}: \`${telegramId}\`
-${t(newLang, "accountLang")}: ${newLang}
-${t(newLang, "accountReferrals")}: ${user.referralCount}
-${t(newLang, "accountJoined")}: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}
-${t(newLang, "accountLevel")}: ${user.miningLevel}
-${t(newLang, "accountStatus")}: ${user.status.toUpperCase()}
-`;
-      const accountKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(newLang, "language"), callback_data: "change_language" }],
-            [{ text: t(newLang, "support"), callback_data: "support" }],
-            [{ text: notifStatus ? t(newLang, "notificationOn") : t(newLang, "notificationOff"), callback_data: "toggle_notification" }],
-            [{ text: t(newLang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: accountKeyboard.reply_markup
-      });
+    } else if (query.data === "change_language") {
+      bot?.sendMessage(chatId, t(lang, "selectLanguage"), languageKeyboard);
       
     } else if (query.data === "support") {
       bot?.editMessageText(t(lang, "supportMessage"), {
         chat_id: chatId,
         message_id: messageId,
         parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: t(lang, "back"), callback_data: "account" }]]
-        }
+        reply_markup: getBackButton(lang).reply_markup
       });
-      
+
     } else if (query.data === "toggle_notification") {
-      const currentStatus = (user as any).notificationsEnabled !== false;
-      const newStatus = !currentStatus;
-      await storage.updateUser(user.id, { notificationsEnabled: newStatus } as any);
-      bot?.answerCallbackQuery(query.id, { text: t(lang, "notificationToggled"), show_alert: true });
+      const current = (user as any).notificationsEnabled !== false;
+      await storage.updateUser(user.id, { notificationsEnabled: !current } as any);
+      bot?.answerCallbackQuery(query.id, { text: t(lang, "notificationToggled") });
       
-      const text = `
-${t(lang, "accountTitle")}
-
-${t(lang, "accountId")}: \`${telegramId}\`
-${t(lang, "accountLang")}: ${lang || 'en'}
-${t(lang, "accountReferrals")}: ${user.referralCount}
-${t(lang, "accountJoined")}: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}
-${t(lang, "accountLevel")}: ${user.miningLevel}
-${t(lang, "accountStatus")}: ${user.status.toUpperCase()}
-`;
-      const accountKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang, "language"), callback_data: "change_language" }],
-            [{ text: t(lang, "support"), callback_data: "support" }],
-            [{ text: newStatus ? t(lang, "notificationOn") : t(lang, "notificationOff"), callback_data: "toggle_notification" }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: accountKeyboard.reply_markup
-      });
+      const updatedUser = await storage.getUser(user.id);
+      if (updatedUser) {
+          const isEn = updatedUser.notificationsEnabled !== false;
+          const accountKeyboard = {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: t(lang, "language"), callback_data: "change_language" }],
+                [{ text: t(lang, "support"), callback_data: "support" }],
+                [{ text: isEn ? t(lang, "notificationOn") : t(lang, "notificationOff"), callback_data: "toggle_notification" }],
+                [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
+              ]
+            }
+          };
+          bot?.editMessageReplyMarkup(accountKeyboard.reply_markup, {
+            chat_id: chatId,
+            message_id: messageId
+          });
+      }
     }
-  });
 
-  console.log("Bot setup complete.");
+    bot?.answerCallbackQuery(query.id);
+  });
 }
