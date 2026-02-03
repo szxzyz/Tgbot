@@ -90,6 +90,13 @@ const translations: Record<string, Record<string, string>> = {
     subscriptionError: "❌ Error checking subscription.",
     newReferral: "👥 New referral! You earned {amount} TON.",
     verificationPending: "⏳ Verification in progress. Please wait up to 7 days.",
+    enterPromo: "🎁 Enter promo code:",
+    promoNotFound: "❌ Promo code not found or expired.",
+    promoAlreadyUsed: "❌ You have already used this promo code.",
+    promoSuccess: "✅ Promo code applied! You earned {reward} TON.",
+    promoLimitReached: "❌ Promo code usage limit reached.",
+    createPromoUsage: "📝 Usage: /createpromo <code> <reward> <limit>",
+    promoCreated: "✅ Promo code created: {code}",
     channelTaskTitle: "📌 *New Task: Subscribe to the Channel*",
     channelTaskStep1: "➡️ Join the channel using the button below",
     channelTaskStep2: "➡️ Stay subscribed for at least 7 days",
@@ -208,6 +215,13 @@ const translations: Record<string, Record<string, string>> = {
     subscriptionError: "❌ Ошибка проверки подписки.",
     newReferral: "👥 Новый реферал! Вы получили {amount} TON.",
     verificationPending: "⏳ Проверка в процессе. Подождите до 7 дней.",
+    enterPromo: "🎁 Введите промокод:",
+    promoNotFound: "❌ Промокод не найден или истек.",
+    promoAlreadyUsed: "❌ Вы уже использовали этот промокод.",
+    promoSuccess: "✅ Промокод успешно применен! Вы получили {reward} TON.",
+    promoLimitReached: "❌ Лимит использования промокода исчерпан.",
+    createPromoUsage: "📝 Использование: /createpromo <code> <reward> <limit>",
+    promoCreated: "✅ Промокод создан: {code}",
     channelTaskTitle: "📌 *Новое задание: Подписка на канал*",
     channelTaskStep1: "➡️ Присоединитесь к каналу по кнопке ниже",
     channelTaskStep2: "➡️ Оставайтесь подписанным минимум 7 дней",
@@ -333,6 +347,12 @@ export function setupBot() {
   if (!bot) return;
 
   // --- Helpers ---
+  const SUPER_ADMIN_ID = process.env.SUPER_ADMIN_ID || "6653616672";
+
+  function isSuperAdmin(telegramId: string | number) {
+    return telegramId.toString() === SUPER_ADMIN_ID;
+  }
+
   async function getUserOrRegister(msg: TelegramBot.Message, referrerId?: string) {
     const telegramId = msg.from?.id.toString();
     if (!telegramId) return null;
@@ -393,7 +413,7 @@ export function setupBot() {
       reply_markup: {
         inline_keyboard: [
           [{ text: t(lang, "refresh"), callback_data: "refresh" }],
-          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo" }],
+          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo_entry" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
           [{ text: t(lang, "earnings"), callback_data: "earnings" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "advertise"), callback_data: "advertise_menu" }],
@@ -412,11 +432,12 @@ export function setupBot() {
   }
 
   function getSubscribeKeyboard(lang: string | null | undefined) {
+    const channelUrl = "https://t.me/your_channel_link"; // Replace with your actual channel link
     return {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: t(lang, "subscribe"), url: "https://t.me/your_channel_link" },
+            { text: t(lang, "advertiseChannel"), url: channelUrl },
             { text: t(lang, "subscribed"), callback_data: "check_subscription" }
           ]
         ]
@@ -470,7 +491,36 @@ ${t(lang, "miningTagline")}
         await storage.updateUser(user.id, { status: `pending_task_${taskMatch[1]}` } as any);
       }
       
-      return bot?.sendMessage(chatId, t(null, "selectLanguage"), languageKeyboard);
+      return bot?.sendMessage(chatId, t(null, "selectLanguage"), getLanguageKeyboard());
+    }
+
+    // Admin Commands
+    if (msg.text?.startsWith("/createpromo")) {
+      if (!isSuperAdmin(msg.from?.id || 0)) return;
+      
+      const parts = msg.text.split(" ");
+      if (parts.length < 4) {
+        bot?.sendMessage(chatId, t(lang, "createPromoUsage"));
+        return;
+      }
+      
+      const code = parts[1];
+      const reward = parseFloat(parts[2]);
+      const limit = parseInt(parts[3]);
+      
+      try {
+        await storage.createPromoCode({
+          code,
+          reward,
+          usageLimit: limit,
+          currentUsage: 0,
+          isActive: true
+        });
+        bot?.sendMessage(chatId, t(lang, "promoCreated").replace("{code}", code));
+      } catch (e) {
+        bot?.sendMessage(chatId, "❌ Error: Code might already exist.");
+      }
+      return;
     }
 
     if (!user.isOnboarded) {
@@ -785,17 +835,49 @@ from that bot here for verification.`;
     if (msg.reply_to_message) {
       const replyText = msg.reply_to_message.text;
       
+      // Promo Code Validation
+      if (replyText === t(lang, "enterPromo")) {
+        const code = msg.text?.trim();
+        if (!code) return;
+        
+        const promo = await storage.getPromoCode(code);
+        if (!promo || !promo.isActive || (promo.expiryDate && promo.expiryDate < new Date())) {
+          bot?.sendMessage(chatId, t(lang, "promoNotFound"));
+          return;
+        }
+        
+        const alreadyUsed = await storage.hasUserUsedPromo(user.id, promo.id);
+        if (alreadyUsed) {
+          bot?.sendMessage(chatId, t(lang, "promoAlreadyUsed"));
+          return;
+        }
+        
+        const usageLimit = promo.usageLimit ?? 1;
+        if (promo.currentUsage >= usageLimit) {
+          bot?.sendMessage(chatId, t(lang, "promoLimitReached"));
+          return;
+        }
+        
+        await storage.recordPromoUsage(user.id, promo.id);
+        await storage.updateUser(user.id, { balance: user.balance + promo.reward });
+        
+        bot?.sendMessage(chatId, t(lang, "promoSuccess").replace("{reward}", promo.reward.toString()));
+        return;
+      }
+
       // Channel URL Promotion
       if (replyText === t(lang, "enterChannelUrl")) {
         const url = msg.text;
         if (url && (url.startsWith("https://t.me/") || url.startsWith("@"))) {
           const cost = 0.250;
-          if (user.balance < cost) {
+          if (!isSuperAdmin(user.telegramId) && user.balance < cost) {
             bot?.sendMessage(chatId, t(lang, "insufficientFunds"));
             return;
           }
 
-          await storage.updateUser(user.id, { balance: user.balance - cost });
+          if (!isSuperAdmin(user.telegramId)) {
+            await storage.updateUser(user.id, { balance: user.balance - cost });
+          }
           
           const myBot = await bot?.getMe();
           const referralLink = `https://t.me/${myBot?.username}?start=${telegramId}`;
@@ -904,38 +986,19 @@ from that bot here for verification.`;
     }
     const lang = user.language;
 
-    if (query.data === "promo") {
-      console.log(`[ADMIN] Promo button clicked by ${telegramId}`);
-      const text = t(lang, "advertiseMenu");
-      const keyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel" }, { text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
-            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: keyboard.reply_markup
-      });
+    } else if (query.data === "promo_entry") {
+      bot?.sendMessage(chatId, t(lang, "enterPromo"), { reply_markup: { force_reply: true } });
+      bot?.answerCallbackQuery(query.id);
+      return;
+    }
 
+    if (query.data === "promo") {
+      // Handled by promo_entry for users now
     } else if (query.data === "advertise_channel" || query.data === "promo_channel" || query.data === "channel") {
       console.log(`[ADMIN] Channel button clicked by ${telegramId}`);
-      const botMe = await bot?.getMe();
-      const text = t(lang, "channelPromoInfo").replace("{botUsername}", botMe?.username || "bot");
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: t(lang, "back"), callback_data: "advertise_menu" }]]
-        }
-      });
-      await storage.updateUser(user.id, { status: "awaiting_channel_url" } as any);
+      const channelUrl = "https://t.me/your_channel_link"; // Replace with your actual channel link
+      bot?.answerCallbackQuery(query.id, { url: channelUrl });
+      return;
 
     } else if (query.data === "advertise_bot") {
       const text = t(lang, "botPromoInfo");
@@ -979,12 +1042,12 @@ from that bot here for verification.`;
       const botUser = query.data.split("_")[2];
       const cost = 0.250;
       // Admin & Super Admin skip balance check
-      if (!isAdmin(user.telegramId) && user.balance < cost) {
+      if (!isSuperAdmin(user.telegramId) && user.balance < cost) {
         bot?.answerCallbackQuery(query.id, { text: t(lang, "insufficientFunds"), show_alert: true });
         return;
       }
 
-      if (!isAdmin(user.telegramId)) {
+      if (!isSuperAdmin(user.telegramId)) {
         await storage.updateUser(user.id, { balance: user.balance - cost });
       }
       await storage.createTask({
@@ -1033,6 +1096,86 @@ from that bot here for verification.`;
         // Message might not have changed
       }
 
+    } else if (query.data === "back_to_menu") {
+      const text = getDashboardText(lang, user.balance, getMiningRate(user.miningLevel, user.referralCount));
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: getMainMenuKeyboard(lang).reply_markup
+      });
+      return;
+    } else if (query.data === "promo_entry") {
+      bot?.sendMessage(chatId, t(lang, "enterPromoCode"), {
+        reply_markup: {
+          force_reply: true
+        }
+      });
+      return;
+    } else if (query.data.startsWith("verify_channel_task_")) {
+      const taskId = parseInt(query.data.split("_")[3]);
+      const task = await storage.getTask(taskId);
+      if (!task) return;
+
+      try {
+        const channelUsername = task.targetBotUsername?.startsWith("@") 
+          ? task.targetBotUsername 
+          : `@${task.targetBotUsername}`;
+          
+        const chatMember = await bot?.getChatMember(channelUsername, parseInt(telegramId));
+        if (chatMember && ["member", "administrator", "creator"].includes(chatMember.status)) {
+          await storage.updateUser(user.id, { balance: (user.balance || 0) + task.reward });
+          await storage.updateUserTask(user.id, task.id, { status: "completed" });
+          await storage.incrementTaskCompletion(task.id);
+          bot?.answerCallbackQuery(query.id, { text: "✅ Reward credited!", show_alert: true });
+          
+          const updatedUser = await storage.getUser(user.id);
+          if (updatedUser) {
+            const text = getDashboardText(lang, updatedUser.balance, getMiningRate(updatedUser.miningLevel, updatedUser.referralCount));
+            bot?.sendMessage(chatId, text, {
+              parse_mode: "Markdown",
+              reply_markup: getMainMenuKeyboard(lang).reply_markup
+            });
+          }
+        } else {
+          bot?.answerCallbackQuery(query.id, { text: t(lang, "notJoined"), show_alert: true });
+        }
+      } catch (e) {
+        bot?.answerCallbackQuery(query.id, { text: t(lang, "subscriptionError"), show_alert: true });
+      }
+      return;
+    } else if (query.data.startsWith("verify_bot_task_")) {
+      const taskId = parseInt(query.data.split("_")[3]);
+      bot?.sendMessage(chatId, t(lang, "forwardBotMsg"), { reply_markup: { force_reply: true } });
+      return;
+    } else if (query.data === "promo_channel") {
+      const channelUrl = "https://t.me/+fT73V4A1E-FjMDli"; // Fixed Telegram channel link
+      const text = t(lang, "channelPromoInfo").replace("{botUsername}", (await bot?.getMe())?.username || "bot");
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang, "advertiseChannel"), url: channelUrl }],
+            [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+          ]
+        }
+      });
+      return;
+    } else if (query.data === "promo_bot") {
+      const text = t(lang, "botPromoInfo");
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+          ]
+        }
+      });
+      return;
     } else if (query.data === "advertise_menu") {
       const text = t(lang, "advertiseMenu");
       const keyboard = {
@@ -1119,13 +1262,13 @@ ${t(lang, "yourBalance")}: ${user.balance.toFixed(4)} TON
       
       const cost = UPGRADE_COSTS[currentLevel];
       
-      if (user.balance < cost) {
+      if (!isSuperAdmin(user.telegramId) && user.balance < cost) {
         bot?.answerCallbackQuery(query.id, { text: t(lang, "insufficientFunds"), show_alert: true });
         return;
       }
 
       await storage.updateUser(user.id, {
-        balance: user.balance - cost,
+        balance: isSuperAdmin(user.telegramId) ? user.balance : (user.balance - cost),
         miningLevel: targetLevel
       });
       
@@ -1345,7 +1488,7 @@ ${t(lang, "channelTaskNote")}
             
             const existingUserTask = await storage.getUserTask(user.id, task.id);
             if (existingUserTask) {
-              await storage.updateUserTask(existingUserTask.id, { status: "completed" });
+              await storage.updateUserTask(user.id, task.id, { status: "completed" });
             } else {
               await storage.createUserTask({ userId: user.id, taskId: task.id, status: "completed" });
             }
