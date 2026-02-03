@@ -555,15 +555,15 @@ from that bot here for verification.`;
 
   const TASK_CHANNEL_ID = "-1002480439556";
   const ADMIN_ID = "6653616672";
-  const SUPER_ADMIN_ID = process.env.SUPER_ADMIN_ID || ADMIN_ID; // Fallback to ADMIN_ID if not set
 
   function isAdmin(telegramId: string | undefined) {
     if (!telegramId) return false;
-    const isSpecial = telegramId === ADMIN_ID || telegramId === SUPER_ADMIN_ID;
+    const superAdminId = process.env.SUPER_ADMIN_ID;
+    const isSpecial = telegramId === ADMIN_ID || (superAdminId && telegramId === superAdminId);
     if (isSpecial) {
-      console.log(`[ADMIN] Authorized access for user ${telegramId}`);
+      console.log(`[ADMIN] Authorized access for user ${telegramId} (SUPER_ADMIN_ID: ${superAdminId})`);
     }
-    return isSpecial;
+    return !!isSpecial;
   }
 
   bot.on("message", async (msg) => {
@@ -923,7 +923,7 @@ from that bot here for verification.`;
         reply_markup: keyboard.reply_markup
       });
 
-    } else if (query.data === "promo_channel") {
+    } else if (query.data === "advertise_channel" || query.data === "promo_channel" || query.data === "channel") {
       console.log(`[ADMIN] Channel button clicked by ${telegramId}`);
       const botMe = await bot?.getMe();
       const text = t(lang, "channelPromoInfo").replace("{botUsername}", botMe?.username || "bot");
@@ -1006,7 +1006,7 @@ from that bot here for verification.`;
         reply_markup: getBackButton(lang).reply_markup
       });
 
-    } else if (query.data === "advertise_menu") {
+    } else if (query.data === "back_to_menu" || query.data === "refresh") {
       const now = Date.now();
       const lastClaim = user.lastClaimTime;
       const diffSeconds = (now - lastClaim) / 1000;
@@ -1032,7 +1032,43 @@ from that bot here for verification.`;
       } catch (e) {
         // Message might not have changed
       }
-      
+
+    } else if (query.data === "advertise_menu") {
+      const text = t(lang, "advertiseMenu");
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel" }, { text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
+            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
+            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
+          ]
+        }
+      };
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: keyboard.reply_markup
+      });
+
+    } else if (query.data === "promo") {
+      console.log(`[ADMIN] Promo button clicked by ${telegramId}`);
+      const text = t(lang, "advertiseMenu");
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel" }, { text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
+            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
+            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
+          ]
+        }
+      };
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: keyboard.reply_markup
+      });
     } else if (query.data === "upgrade") {
       const currentLevel = user.miningLevel;
       const nextLevel = currentLevel + 1;
