@@ -115,7 +115,7 @@ const translations: Record<string, Record<string, string>> = {
     advertiseChannel: "📢 Channel",
     advertiseBots: "🤖 Bots",
     myTasks: "💼 My Tasks",
-    channelPromoInfo: "📈 Advertise\n↳ Advertise your Telegram Channel or Group\n\nYour channel or group will be promoted to thousands of users.\n\n↳ 💰 Cost: 0.250 TON\n↳ 📌 Task limit: 1000 users\n\n➕ Add this bot (@{botUsername}) as ADMIN\nto verify whether users have joined.\n\n📝 Enter your URL to continue.",
+    channelPromoInfo: "📈 Advertise\n↳ Advertise your Telegram Channel or Group\n\nYour channel or group will be promoted to thousands of users.\n\n↳ 💰 Cost: 0.250 TON\n↳ 📌 Task limit: 1000 users\n\n➕ Add this bot @{botUsername} as ADMIN\nto verify whether users have joined.\n\n📝 Enter your channel or group URL to continue.",
     subscribeChannel: "📢 Subscribe",
     notJoined: "❌ You haven't joined the channel yet. Please join first!",
     enterChannelUrl: "📝 Enter the channel or group URL:",
@@ -130,9 +130,11 @@ const translations: Record<string, Record<string, string>> = {
     forwardMessage: "📩 Please forward ANY message from the promoted bot.",
     adminChannelPost: "📌 New Task: Subscribe to the Channel\n\n➡️ Join the channel using the button below\n➡️ Stay subscribed for at least 24 hours\n\n⚠️ Reward will be credited after verification.",
     claimReward: "👉 Click here to claim 👈",
+    taskCompleted: "🎉 Task Completed Successfully!\n\n💰 Reward Earned: {reward} TON\n📌 Task: {title}\n\n✅ Your reward has been credited to your balance.\n\n⏳ Please keep the channel joined\nfor the required time to avoid penalty.",
+    addBotAsAdmin: "❌ Please add the bot @{botUsername} as an administrator in your channel first to verify users!",
   },
   ru: {
-    selectLanguage: "Select language / Выберите язык",
+    selectLanguage: "Выберите язык / Select language",
     dashboard: "🪪 *Панель управления*",
     balance: "💰 Баланс",
     miningSpeed: "⛏️ Скорость майнинга",
@@ -224,23 +226,23 @@ const translations: Record<string, Record<string, string>> = {
     promoCreated: "✅ Промокод создан: {code}",
     channelTaskTitle: "📌 *Новое задание: Подписка на канал*",
     channelTaskStep1: "➡️ Присоединитесь к каналу по кнопке ниже",
-    channelTaskStep2: "➡️ Оставайтесь подписанным минимум 7 дней",
+    channelTaskStep2: "➡️ Оставайтесь подписанным минимум 24 часа",
     channelTaskNote: "⚠️ Награда будет начислена после проверки.",
     botTaskTitle: "📌 *Новое задание: Запустить бота*",
     botTaskStep1: "➡️ Откройте бота по кнопке ниже",
     botTaskStep2: "➡️ НЕ блокируйте бота минимум 7 дней",
     botTaskWarning: "❗ Блокировка до 7 дней может привести к штрафу",
-    missionChannel: "👉🏻 *Миссия: Взаимодействуйте с каналом.*\n\n❓ После присоединения нажмите « ✅ Подписался » ниже.",
-    missionBot: "👉🏻 *Миссия: Взаимодействуйте с ботом.*\n\n❓ Нажмите « ✅ Запущен » и перешлите ЛЮБОЕ сообщение\nот этого бота сюда для проверки.",
-    joined: "✅ Подписался",
+    missionChannel: "👉🏻 *Миссия: Взаимодействуйте с каналом и вступите в него.*\n\n❓ После вступления нажмите « ✅ Вступил » ниже.",
+    missionBot: "👉🏻 *Mission: Engage with the bot.*\n\n❓ Нажмите « ✅ Запущен » и перешлите ЛЮБОЕ сообщение\nот этого бота сюда для проверки.",
+    joined: "✅ Вступил",
     started: "✅ Запущен",
     skip: "↪️ Пропустить",
     check: "🔄 Проверить",
-    advertiseMenu: "📈 Что бы вы хотели продвигать?",
+    advertiseMenu: "📈 Реклама\n↳ Рекламируйте свой Telegram-канал или группу\n\nВаш канал или группа будет показан тысячам пользователей.\n\n↳ 💰 Стоимость: 0.250 TON\n↳ 📌 Лимит заданий: 1000 пользователей\n\n➕ Добавьте этого бота @{botUsername} как АДМИНА\nчтобы проверять, присоединились ли пользователи.\n\n📝 Введите URL канала или группы для продолжения.",
     advertiseChannel: "📢 Канал",
     advertiseBots: "🤖 Боты",
     myTasks: "💼 Мои задания",
-    channelPromoInfo: "📈 Реклама\n↳ Рекламируйте свой Telegram-канал или группу\n\nВаш канал или группа будет показан тысячам пользователей.\n\n↳ 💰 Стоимость: 0.250 TON\n↳ 📌 Лимит заданий: 1000 пользователей\n\n➕ Добавьте этого бота (@{botUsername}) как АДМИНА\nчтобы проверять, присоединились ли пользователи.\n\n📝 Введите URL для продолжения.",
+    channelPromoInfo: "📈 Реклама\n↳ Рекламируйте свой Telegram-канал или группу\n\nВаш канал или группа будет показан тысячам пользователей.\n\n↳ 💰 Стоимость: 0.250 TON\n↳ 📌 Лимит заданий: 1000 пользователей\n\n➕ Добавьте этого бота @{botUsername} как АДМИНА\nчтобы проверять, присоединились ли пользователи.\n\n📝 Введите URL канала или группы для продолжения.",
     subscribeChannel: "📢 Подписаться",
     notJoined: "❌ Вы ещё не подписались на канал. Пожалуйста, подпишитесь сначала!",
     enterChannelUrl: "📝 Введите URL канала или группы:",
@@ -253,8 +255,10 @@ const translations: Record<string, Record<string, string>> = {
     addReferralLink: "🔗 Добавить реф. ссылку",
     startBot: "🤖 Запустить бота",
     forwardMessage: "📩 Пожалуйста, перешлите ЛЮБОЕ сообщение от продвигаемого бота.",
-    adminChannelPost: "📌 Новое задание: Подписка на канал\n\n➡️ Присоединитесь к каналу по кнопке ниже\n➡️ Оставайтесь подписанным минимум 24 часа\n\n⚠️ Награда будет начислена после проверки.",
+    adminChannelPost: "📌 New Task: Subscribe to the Channel\n\n➡️ Join the channel using the button below\n➡️ Stay subscribed for at least 24 hours\n\n⚠️ Reward will be credited after verification.",
     claimReward: "👉 Нажмите здесь, чтобы забрать 👈",
+    taskCompleted: "🎉 Задание успешно выполнено!\n\n💰 Полученная награда: {reward} TON\n📌 Задание: {title}\n\n✅ Награда зачислена на ваш баланс.\n\n⏳ Пожалуйста, оставайтесь в канале\nв течение необходимого времени, чтобы избежать штрафа.",
+    addBotAsAdmin: "❌ Пожалуйста, сначала добавьте бота @{botUsername} в качестве администратора в ваш канал для проверки пользователей!",
   },
 };
 
@@ -1047,24 +1051,23 @@ from that bot here for verification.`;
       return;
     }
 
-    if (query.data === "advertise_channel" || query.data === "promo_channel" || query.data === "channel") {
-      console.log(`[CHANNEL] Channel button clicked by ${telegramId}`);
+    if (query.data === "promo_channel") {
+      const lang = user.language || 'en';
       const channelUrl = "https://t.me/your_channel_link"; 
-      
-      try {
-        await bot?.answerCallbackQuery(query.id, { url: channelUrl });
-      } catch (e) {
-        bot?.answerCallbackQuery(query.id);
-        bot?.sendMessage(chatId, t(lang_cb, "missionChannel"), {
-          parse_mode: "Markdown",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: t(lang_cb, "advertiseChannel"), url: channelUrl }],
-              [{ text: t(lang_cb, "joined"), callback_data: "check_subscription" }]
-            ]
-          }
-        });
-      }
+      const text = t(lang, "missionChannel");
+      bot?.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang, "subscribeChannel"), url: channelUrl }],
+            [{ text: t(lang, "joined"), callback_data: "check_subscription" }],
+            [{ text: t(lang, "back"), callback_data: "advertise_menu" }]
+          ]
+        }
+      });
+      bot?.answerCallbackQuery(query.id);
       return;
     }
 
@@ -1258,7 +1261,8 @@ from that bot here for verification.`;
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
-            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel" }, { text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
+            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel_start" }],
+            [{ text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
             [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
             [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
           ]
@@ -1270,27 +1274,11 @@ from that bot here for verification.`;
         parse_mode: "Markdown",
         reply_markup: keyboard.reply_markup
       });
+      bot?.answerCallbackQuery(query.id);
+      return;
+    }
 
-    } else if (query.data === "promo") {
-      console.log(`[ADMIN] Promo button clicked by ${telegramId}`);
-      const lang = user.language || 'en';
-      const text = t(lang, "advertiseMenu");
-      const keyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel" }, { text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
-            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: keyboard.reply_markup
-      });
-    } else if (query.data === "upgrade") {
+    if (query.data === "upgrade") {
       const lang = user.language || 'en';
       const currentLevel = user.miningLevel;
       const nextLevel = currentLevel + 1;
