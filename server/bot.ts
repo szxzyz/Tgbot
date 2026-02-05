@@ -14,7 +14,6 @@ const translations: Record<string, Record<string, string>> = {
     miningTagline: "TON — Mining without limits",
     refresh: "♻️ Refresh",
     upgrade: "🚀 Upgrade",
-    promo: "🎁 Promo",
     partners: "👥 Partners",
     account: "👤 Account",
     earnings: "💸 Earnings",
@@ -90,13 +89,6 @@ const translations: Record<string, Record<string, string>> = {
     subscriptionError: "❌ Error checking subscription.",
     newReferral: "👥 New referral! You earned {amount} TON.",
     verificationPending: "⏳ Verification in progress. Please wait up to 7 days.",
-    enterPromo: "🎁 Enter promo code:",
-    promoNotFound: "❌ Promo code not found or expired.",
-    promoAlreadyUsed: "❌ You have already used this promo code.",
-    promoSuccess: "✅ Promo code applied! You earned {reward} TON.",
-    promoLimitReached: "❌ Promo code usage limit reached.",
-    createPromoUsage: "📝 Usage: /createpromo <code> <reward> <limit>",
-    promoCreated: "✅ Promo code created: {code}",
     channelTaskTitle: "📌 *New Task: Subscribe to the Channel*",
     channelTaskStep1: "➡️ Join the channel using the button below",
     channelTaskStep2: "➡️ Stay subscribed for at least 7 days",
@@ -141,7 +133,6 @@ const translations: Record<string, Record<string, string>> = {
     miningTagline: "TON — Майнинг без ограничений",
     refresh: "♻️ Обновить",
     upgrade: "🚀 Улучшить",
-    promo: "🎁 Промо",
     partners: "👥 Партнёры",
     account: "👤 Аккаунт",
     earnings: "💸 Заработок",
@@ -217,13 +208,6 @@ const translations: Record<string, Record<string, string>> = {
     subscriptionError: "❌ Ошибка проверки подписки.",
     newReferral: "👥 Новый реферал! Вы получили {amount} TON.",
     verificationPending: "⏳ Проверка в процессе. Подождите до 7 дней.",
-    enterPromo: "🎁 Введите промокод:",
-    promoNotFound: "❌ Промокод не найден или истек.",
-    promoAlreadyUsed: "❌ Вы уже использовали этот промокод.",
-    promoSuccess: "✅ Промокод успешно применен! Вы получили {reward} TON.",
-    promoLimitReached: "❌ Лимит использования промокода исчерпан.",
-    createPromoUsage: "📝 Использование: /createpromo <code> <reward> <limit>",
-    promoCreated: "✅ Промокод создан: {code}",
     channelTaskTitle: "📌 *Новое задание: Подписка на канал*",
     channelTaskStep1: "➡️ Присоединитесь к каналу по кнопке ниже",
     channelTaskStep2: "➡️ Оставайтесь подписанным минимум 24 часа",
@@ -428,7 +412,7 @@ export function setupBot() {
       reply_markup: {
         inline_keyboard: [
           [{ text: t(lang, "refresh"), callback_data: "refresh" }],
-          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }, { text: t(lang, "promo"), callback_data: "promo_entry" }],
+          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
           [{ text: t(lang, "earnings"), callback_data: "earnings" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "advertise"), callback_data: "advertise_menu" }],
@@ -512,14 +496,6 @@ ${t(lang, "miningTagline")}
     const lang_start = user.language;
 
     // Admin Commands
-    if (msg.text?.startsWith("/createpromo")) {
-      if (!isSuperAdmin(msg.from?.id)) return;
-      
-      const parts = msg.text.split(" ");
-      if (parts.length < 4) {
-        bot?.sendMessage(chatId, t(lang_start, "createPromoUsage"));
-        return;
-      }
       
       const code = parts[1];
       const reward = parseFloat(parts[2]);
@@ -705,13 +681,6 @@ from that bot here for verification.`;
       }
     }
 
-    if (msg.text && user.status === "awaiting_promo") {
-      const code = msg.text.trim();
-      const promo = await storage.getPromoCode(code);
-      
-      if (!promo) {
-        bot?.sendMessage(chatId, t(user.language, "promoNotFound"));
-        await storage.updateUser(user.id, { status: "active" } as any);
         return;
       }
 
@@ -1044,13 +1013,6 @@ from that bot here for verification.`;
     }
     const lang_cb = user.language;
 
-    if (query.data === "promo_entry" || query.data === "promo") {
-      console.log(`[PROMO] Promo button clicked by ${telegramId}`);
-      bot?.sendMessage(chatId, t(lang_cb, "enterPromoCode"), { reply_markup: { force_reply: true } });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
     if (query.data === "promo_channel") {
       const lang = user.language || 'en';
       const channelUrl = "https://t.me/your_channel_link"; 
@@ -1088,21 +1050,6 @@ from that bot here for verification.`;
       });
       await storage.updateUser(user.id, { status: "awaiting_bot_url" } as any);
 
-    } else if (query.data === "promo_channel_start") {
-      const myBot = await bot?.getMe();
-      const botUsername = myBot?.username || "bot";
-      const text = t(lang_cb, "enterChannelUrl").replace("{botUsername}", `@${botUsername}`);
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang_cb, "back"), callback_data: "advertise_menu" }]
-          ]
-        }
-      });
-      await storage.updateUser(user.id, { status: "awaiting_channel_url" } as any);
 
     } else if (query.data === "my_tasks") {
       const creatorTasks = await storage.getTasksByCreator(user.id);
@@ -1182,25 +1129,6 @@ from that bot here for verification.`;
       }
 
     } else if (query.data === "back_to_menu") {
-      await storage.updateUser(user.id, { status: "active" } as any);
-      const text = getDashboardText(lang_cb, user.balance, getMiningRate(user.miningLevel, user.referralCount));
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: getMainMenuKeyboard(lang_cb).reply_markup
-      });
-      return;
-    } else if (query.data === "promo_entry") {
-      await storage.updateUser(user.id, { status: "entering_promo" } as any);
-      bot?.sendMessage(chatId, t(lang_cb, "enterPromo"), {
-        reply_markup: {
-          force_reply: true
-        }
-      });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    } else if (query.data.startsWith("verify_channel_task_")) {
       const taskId = parseInt(query.data.split("_")[3]);
       const task = await storage.getTask(taskId);
       if (!task) return;
@@ -1274,510 +1202,3 @@ from that bot here for verification.`;
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
-            [{ text: t(lang, "advertiseChannel"), callback_data: "promo_channel_start" }],
-            [{ text: t(lang, "advertiseBots"), callback_data: "advertise_bot" }],
-            [{ text: t(lang, "myTasks"), callback_data: "my_tasks" }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: keyboard.reply_markup
-      });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "upgrade") {
-      const lang = user.language || 'en';
-      const currentLevel = user.miningLevel;
-      const nextLevel = currentLevel + 1;
-      const cost = UPGRADE_COSTS[nextLevel]; // Correctly check for next level's cost
-      
-      if (cost === undefined) {
-        bot?.sendMessage(chatId, t(lang, "maxLevelReached"));
-        return;
-      }
-
-      const text = `
-${t(lang, "upgradeTitle")}
-
-${t(lang, "currentLevel")}: ${currentLevel}
-${t(lang, "speed")}: ${MINING_SPEEDS[currentLevel]} TON / 5s
-
-${t(lang, "nextLevel")}: ${nextLevel}
-${t(lang, "speed")}: ${MINING_SPEEDS[nextLevel]} TON / 5s
-${t(lang, "cost")}: ${cost} TON
-
-${t(lang, "yourBalance")}: ${user.balance.toFixed(4)} TON
-`;
-      
-      const upgradeKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: `${t(lang, "buyLevel")} ${nextLevel} (${cost} TON)`, callback_data: `buy_level_${nextLevel}` }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: upgradeKeyboard.reply_markup
-      });
-
-    } else if (query.data.startsWith("buy_level_")) {
-      const targetLevel = parseInt(query.data.split("_")[2]);
-      const currentLevel = user.miningLevel;
-      
-      if (targetLevel !== currentLevel + 1) {
-        bot?.sendMessage(chatId, t(lang, "upgradeOneLevel"));
-        return;
-      }
-      
-      const cost = UPGRADE_COSTS[currentLevel];
-      
-      if (!isSuperAdmin(user.telegramId) && user.balance < cost) {
-        bot?.answerCallbackQuery(query.id, { text: t(lang, "insufficientFunds"), show_alert: true });
-        return;
-      }
-
-      await storage.updateUser(user.id, {
-        balance: isSuperAdmin(user.telegramId) ? user.balance : (user.balance - cost),
-        miningLevel: targetLevel
-      });
-      
-      bot?.answerCallbackQuery(query.id, { text: t(lang, "upgradeSuccess"), show_alert: true });
-      
-      const updatedUser = await storage.getUser(user.id);
-      if (!updatedUser) return;
-
-      const text = getDashboardText(lang, updatedUser.balance, getMiningRate(updatedUser.miningLevel, updatedUser.referralCount));
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: getMainMenuKeyboard(lang).reply_markup
-      });
-
-    } else if (query.data === "partners") {
-      const botUsername = (await bot?.getMe())?.username;
-      const referralLink = `https://t.me/${botUsername}?start=${telegramId}`;
-      
-      const bonusStatus = user.referralCount >= 1 ? "✅ ACTIVE" : "⏳ Invite 1+ friend";
-      const text = `
-${t(lang, "partnersTitle")}
-
-${t(lang, "partnersDesc")}
-• ${t(lang, "partnersReward").replace("{amount}", REFERRAL_REWARD.toString())}
-• ${t(lang, "partnersBonus")} ${bonusStatus}
-
-${t(lang, "referralLink")}
-\`${referralLink}\`
-
-${t(lang, "totalReferrals")}: ${user.referralCount}
-`;
-      const shareMessage = t(lang, "shareReferralMessage").replace("{link}", referralLink);
-      const partnersKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang, "shareReferral"), switch_inline_query: shareMessage }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: partnersKeyboard.reply_markup
-      });
-
-    } else if (query.data === "info") {
-      const text = `
-${t(lang, "infoTitle")}
-
-${t(lang, "infoWhat")}
-${t(lang, "infoWhatDesc")}
-
-${t(lang, "infoHow")}
-${t(lang, "infoStep1")}
-${t(lang, "infoStep2")}
-${t(lang, "infoStep3")}
-${t(lang, "infoStep4")}
-
-${t(lang, "infoNote")}
-`;
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: getBackButton(lang).reply_markup
-      });
-
-    } else if (query.data === "earnings") {
-      const lang = user.language || 'en';
-      const activeTasks = await storage.getActiveTasksForUser(user.id);
-      
-      if (activeTasks.length === 0) {
-        const text = `
-${t(lang, "earningsTitle")}
-
-${t(lang, "noTasks")}
-`;
-        bot?.editMessageText(text, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: "Markdown",
-          reply_markup: getBackButton(lang).reply_markup
-        });
-      } else {
-        const text = `
-${t(lang, "earningsTitle")}
-
-${t(lang, "newTasks")}
-`;
-        const earningsKeyboard = {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: t(lang, "goToTasks"), callback_data: "task_list" }],
-              [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-            ]
-          }
-        };
-        bot?.editMessageText(text, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: "Markdown",
-          reply_markup: earningsKeyboard.reply_markup
-        });
-      }
-
-    } else if (query.data === "task_list") {
-      const lang = user.language || 'en';
-      const activeTasks = await storage.getActiveTasksForUser(user.id);
-      let text = `${t(lang, "taskList")}\n\n`;
-      const inline_keyboard: any[][] = [];
-
-      for (const task of activeTasks) {
-        text += `${task.type === 'channel' ? t(lang, "channelTask") : t(lang, "botTask")}\n`;
-        inline_keyboard.push([{ text: `👉 ${task.title}`, callback_data: `view_task_${task.id}` }]);
-      }
-      inline_keyboard.push([{ text: t(lang, "back"), callback_data: "earnings" }]);
-
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: { inline_keyboard }
-      });
-
-    } else if (query.data.startsWith("view_task_")) {
-      const lang = user.language || 'en';
-      const taskId = parseInt(query.data.split("_")[2]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-
-      let text = "";
-      if (task.type === "channel") {
-        text = `
-${t(lang, "channelTaskTitle")}
-
-${t(lang, "channelTaskStep1")}
-${t(lang, "channelTaskStep2")}
-
-${t(lang, "channelTaskNote")}
-`;
-      } else {
-        text = `
-${t(lang, "botTaskTitle")}
-
-${t(lang, "botTaskStep1")}
-${t(lang, "botTaskStep2")}
-${t(lang, "botTaskWarning")}
-
-${t(lang, "channelTaskNote")}
-`;
-      }
-
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang, "goToTasks"), callback_data: `claim_task_${task.id}` }],
-            [{ text: t(lang, "back"), callback_data: "task_list" }]
-          ]
-        }
-      });
-
-    } else if (query.data.startsWith("claim_task_")) {
-      const taskId = parseInt(query.data.split("_")[2]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-
-      let userTask = await storage.getUserTask(user.id, task.id);
-      if (!userTask) {
-        userTask = await storage.createUserTask({
-          userId: user.id,
-          taskId: task.id,
-          status: "pending"
-        });
-      }
-
-      let text = "";
-      const inline_keyboard: any[][] = [];
-
-      if (task.type === "channel") {
-        text = t(lang, "missionChannel");
-        inline_keyboard.push([{ text: t(lang, "joined"), callback_data: `check_mission_${task.id}` }]);
-      } else {
-        text = t(lang, "missionBot");
-        inline_keyboard.push([{ text: t(lang, "started"), callback_data: `check_mission_${task.id}` }]);
-      }
-      
-      inline_keyboard.push([{ text: t(lang, "skip"), callback_data: "task_list" }]);
-      inline_keyboard.push([{ text: t(lang, "check"), callback_data: `check_mission_${task.id}` }]);
-
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: { inline_keyboard }
-      });
-
-    } else if (query.data.startsWith("check_mission_")) {
-      const taskId = parseInt(query.data.split("_")[2]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-
-      if (task.type === "channel") {
-        try {
-          // targetBotUsername should be the channel username without @
-          const channelUsername = task.targetBotUsername?.startsWith("@") 
-            ? task.targetBotUsername 
-            : `@${task.targetBotUsername}`;
-            
-          const chatMember = await bot?.getChatMember(channelUsername, parseInt(telegramId));
-          if (chatMember && ["member", "administrator", "creator"].includes(chatMember.status)) {
-            // Reward credited
-            await storage.updateUser(user.id, { balance: user.balance + task.reward });
-            
-            const existingUserTask = await storage.getUserTask(user.id, task.id);
-            if (existingUserTask) {
-              await storage.updateUserTask(user.id, task.id, { status: "completed" });
-            } else {
-              await storage.createUserTask({ userId: user.id, taskId: task.id, status: "completed" });
-            }
-            
-            await storage.incrementTaskCompletion(task.id);
-            bot?.answerCallbackQuery(query.id, { text: "✅ Reward credited!", show_alert: true });
-            
-            // Return to dashboard
-            const updatedUser = await storage.getUser(user.id);
-            if (updatedUser) {
-              const text = getDashboardText(lang, updatedUser.balance, getMiningRate(updatedUser.miningLevel, updatedUser.referralCount));
-              bot?.editMessageText(text, {
-                chat_id: chatId,
-                message_id: messageId,
-                parse_mode: "Markdown",
-                reply_markup: getMainMenuKeyboard(lang).reply_markup
-              });
-            }
-          } else {
-            bot?.answerCallbackQuery(query.id, { text: t(lang, "notJoined"), show_alert: true });
-          }
-        } catch (e) {
-          console.error("Verification error:", e);
-          bot?.answerCallbackQuery(query.id, { text: "❌ Verification failed. Make sure the bot is admin in the channel.", show_alert: true });
-        }
-      } else {
-        bot?.answerCallbackQuery(query.id, { text: t(lang, "verificationPending"), show_alert: true });
-      }
-
-    } else if (query.data.startsWith("verify_bot_task_")) {
-      const taskId = parseInt(query.data.split("_")[3]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-      
-      // Set user status to awaiting verification
-      await storage.updateUser(user.id, { status: "awaiting_bot_verification" } as any);
-      
-      const text = t(lang, "forwardMessage");
-      bot?.sendMessage(chatId, text, { parse_mode: "Markdown" });
-      bot?.answerCallbackQuery(query.id);
-      
-    } else if (query.data === "account") {
-      const notifStatus = (user as any).notificationsEnabled !== false;
-      const langDisplay = lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English';
-      const text = `
-${t(lang, "accountTitle")}
-
-📅 Joined: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}
-🆔 ID: \`${telegramId}\`
-
-⚡ Level: ${user.miningLevel}
-💎 Balance: ${user.balance.toFixed(3)}
-
-👥 Referrals: ${user.referralCount}
-🗣️ Language: ${langDisplay}
-`;
-      const accountKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "💵 Add funds", callback_data: "add_funds" }],
-            [{ text: "🌎 Change Language", callback_data: "change_language" }],
-            [{ text: "📞 Support", callback_data: "support" }],
-            [{ text: notifStatus ? "🔔 Notification settings" : "🔕 Notification settings", callback_data: "toggle_notification" }],
-            [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: accountKeyboard.reply_markup
-      });
-
-    } else if (query.data === "withdraw") {
-      const minWithdraw = 0.5;
-      
-      const text = `
-${t(lang, "withdrawTitle")}
-
-${t(lang, "balance")}: ${user.balance.toFixed(4)} TON
-${t(lang, "minWithdraw")}: ${minWithdraw} TON
-`;
-      
-      const withdrawKeyboard = {
-        reply_markup: {
-          inline_keyboard: [
-             user.balance >= minWithdraw 
-             ? [{ text: t(lang, "requestWithdraw"), callback_data: "request_withdrawal" }]
-             : [{ text: t(lang, "insufficientBalance"), callback_data: "no_balance" }],
-             [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: withdrawKeyboard.reply_markup
-      });
-
-    } else if (query.data === "request_withdrawal") {
-      bot?.sendMessage(chatId, t(lang, "enterWallet"), {
-         reply_markup: { force_reply: true }
-      }).then(sent => {
-         bot?.onReplyToMessage(chatId, sent.message_id, async (reply) => {
-             const wallet = reply.text;
-             if (!wallet) return;
-
-             const amountMsg = await bot?.sendMessage(chatId, t(lang, "enterAmount"), {
-                 reply_markup: { force_reply: true }
-             });
-
-             if (amountMsg) {
-                 bot?.onReplyToMessage(chatId, amountMsg.message_id, async (amountReply) => {
-                     const amount = parseFloat(amountReply.text || "0");
-                     if (isNaN(amount) || amount <= 0) {
-                         bot?.sendMessage(chatId, t(lang, "invalidAmount"));
-                         return;
-                     }
-
-                     const freshUser = await storage.getUser(user.id);
-                     if (!freshUser || freshUser.balance < amount) {
-                         bot?.sendMessage(chatId, t(lang, "insufficientBalanceMsg"));
-                         return;
-                     }
-
-                     await storage.updateUser(freshUser.id, { balance: freshUser.balance - amount });
-                     await storage.createWithdrawal({
-                         userId: freshUser.id,
-                         amount,
-                         walletAddress: wallet,
-                         status: "pending"
-                     });
-
-                     bot?.sendMessage(chatId, t(lang, "withdrawPending"));
-                 });
-             }
-         });
-      });
-
-    } else if (query.data === "change_language") {
-      bot?.sendMessage(chatId, t(lang, "selectLanguage"), getLanguageKeyboard());
-      
-    } else if (query.data.startsWith("set_lang_")) {
-      const selectedLang = query.data.split("_")[2];
-      await storage.updateUser(user.id, { language: selectedLang, isOnboarded: true });
-      bot?.answerCallbackQuery(query.id, { text: "Language updated!" });
-      
-      const welcomeText = getDashboardText(selectedLang, user.balance, getMiningRate(user.miningLevel, user.referralCount));
-      bot?.sendMessage(chatId, welcomeText, { parse_mode: "Markdown", ...getMainMenuKeyboard(selectedLang) });
-
-    } else if (query.data === "support") {
-      bot?.editMessageText(t(lang, "supportMessage"), {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: getBackButton(lang).reply_markup
-      });
-
-    } else if (query.data === "add_funds") {
-      const text = `
-💵 *Add Funds*
-
-To deposit TON to your account, send your desired amount to:
-
-\`YOUR_TON_WALLET_ADDRESS_HERE\`
-
-After sending, your balance will be updated automatically.
-
-⚠️ Minimum deposit: 0.1 TON
-`;
-      bot?.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        parse_mode: "Markdown",
-        reply_markup: getBackButton(lang).reply_markup
-      });
-
-    } else if (query.data === "toggle_notification") {
-      const current = (user as any).notificationsEnabled !== false;
-      await storage.updateUser(user.id, { notificationsEnabled: !current } as any);
-      bot?.answerCallbackQuery(query.id, { text: t(lang, "notificationToggled") });
-      
-      const updatedUser = await storage.getUser(user.id);
-      if (updatedUser) {
-          const isEn = updatedUser.notificationsEnabled !== false;
-          const accountKeyboard = {
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: "💵 Add funds", callback_data: "add_funds" }],
-                [{ text: "🌎 Change Language", callback_data: "change_language" }],
-                [{ text: "📞 Support", callback_data: "support" }],
-                [{ text: isEn ? "🔔 Notification settings" : "🔕 Notification settings", callback_data: "toggle_notification" }],
-                [{ text: t(lang, "back"), callback_data: "back_to_menu" }]
-              ]
-            }
-          };
-          bot?.editMessageReplyMarkup(accountKeyboard.reply_markup, {
-            chat_id: chatId,
-            message_id: messageId
-          });
-      }
-    }
-
-    bot?.answerCallbackQuery(query.id);
-  });
-}
