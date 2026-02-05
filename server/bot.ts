@@ -737,7 +737,7 @@ from that bot here for verification.`;
       bot?.sendMessage(chatId, t(user.language, "promoSuccess").replace("{reward}", promo.reward.toString()));
       return;
     }
-    if (msg.text && user.status === "awaiting_bot_url") {
+    if (msg.text && user.status === "awaiting_bot_url" && !msg.text.startsWith("/")) {
       const text = msg.text.trim();
       const botUrlMatch = text.match(/(?:https?:\/\/)?t\.me\/([a-zA-Z0-9_]+)/i);
       
@@ -1089,7 +1089,9 @@ from that bot here for verification.`;
       await storage.updateUser(user.id, { status: "awaiting_bot_url" } as any);
 
     } else if (query.data === "promo_channel_start") {
-      const text = t(lang_cb, "enterChannelUrl");
+      const myBot = await bot?.getMe();
+      const botUsername = myBot?.username || "bot";
+      const text = t(lang_cb, "enterChannelUrl").replace("{botUsername}", `@${botUsername}`);
       bot?.editMessageText(text, {
         chat_id: chatId,
         message_id: messageId,
@@ -1152,6 +1154,7 @@ from that bot here for verification.`;
       });
 
     } else if (query.data === "back_to_menu" || query.data === "refresh") {
+      await storage.updateUser(user.id, { status: "active" } as any);
       const now = Date.now();
       const lastClaim = user.lastClaimTime;
       const diffSeconds = (now - lastClaim) / 1000;
