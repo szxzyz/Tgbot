@@ -389,7 +389,7 @@ export function setupBot() {
           [{ text: t(lang, "refresh"), callback_data: "refresh" }],
           [{ text: t(lang, "upgrade"), callback_data: "upgrade" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
-          [{ text: t(lang, "earnings"), callback_data: "earnings" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
+          [{ text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
         ]
       }
@@ -748,7 +748,17 @@ from that bot here for verification.`;
       text += `${t(lang_cb, "accountLevel")}: ${user.miningLevel}\n`;
       text += `${t(lang_cb, "accountStatus")}: ${user.status}`;
       
-      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getBackButton(lang_cb) });
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: t(lang_cb, "language"), callback_data: "set_language" }],
+            [{ text: t(lang_cb, "support"), callback_data: "support" }],
+            [{ text: t(lang_cb, "back"), callback_data: "back_to_menu" }]
+          ]
+        }
+      };
+      
+      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...keyboard });
       bot?.answerCallbackQuery(query.id);
       return;
     }
