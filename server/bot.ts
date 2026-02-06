@@ -6,17 +6,15 @@ let isPolling = false;
 
 // Translations
 const translations: Record<string, Record<string, string>> = {
-  en: {
+    en: {
     selectLanguage: "Select language / Выберите язык",
-    dashboard: "🪪 *Dashboard*",
-    balance: "💰 Balance",
-    miningSpeed: "⛏️ Mining Speed",
-    miningTagline: "TON — Mining without limits",
+    dashboard: "👤 *Account Dashboard*",
+    balance: "Balance",
+    miningSpeed: "Mining Speed",
+    miningTagline: "TON - Mining without limits",
     refresh: "♻️ Refresh",
     upgrade: "🚀 Upgrade",
-    partners: "👥 Partners",
-    account: "👤 Account",
-    earnings: "💸 Earnings",
+    partners: "👥 Partner",
     withdraw: "🏦 Withdraw",
     info: "ℹ️ Info",
     back: "↩️ Back",
@@ -124,15 +122,13 @@ const translations: Record<string, Record<string, string>> = {
   },
   ru: {
     selectLanguage: "Выберите язык / Select language",
-    dashboard: "🪪 *Панель управления*",
-    balance: "💰 Баланс",
-    miningSpeed: "⛏️ Скорость майнинга",
-    miningTagline: "TON — Майнинг без ограничений",
+    dashboard: "👤 *Account Dashboard*",
+    balance: "Баланс",
+    miningSpeed: "Скорость майнинга",
+    miningTagline: "TON - Mining without limits",
     refresh: "♻️ Обновить",
     upgrade: "🚀 Улучшить",
-    partners: "👥 Партнёры",
-    account: "👤 Аккаунт",
-    earnings: "💸 Заработок",
+    partners: "👥 Partner",
     withdraw: "🏦 Вывод",
     info: "ℹ️ Инфо",
     back: "↩️ Назад",
@@ -158,8 +154,8 @@ const translations: Record<string, Record<string, string>> = {
     partnersBonus: "+10% бонус к скорости майнинга (активен с рефералами)",
     shareReferral: "🔗 Поделиться",
     shareReferralMessage: "🚀 Начни зарабатывать TON со мной!\n\nМайни TON каждую секунду с этим ботом.\nПрисоединяйся и получи ускоренный майнинг 💰\n\n👉 Начать: {link}",
-    language: "🌎 Язык",
-    support: "📞 Поддержка",
+    language: "🌎 Language",
+    support: "📞 Support",
     notification: "🔔 Уведомления",
     notificationOn: "🔔 Уведомления: ВКЛ",
     notificationOff: "🔕 Уведомления: ВЫКЛ",
@@ -388,8 +384,8 @@ export function setupBot() {
         inline_keyboard: [
           [{ text: t(lang, "refresh"), callback_data: "refresh" }],
           [{ text: t(lang, "upgrade"), callback_data: "upgrade" }],
-          [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "account"), callback_data: "account" }],
-          [{ text: t(lang, "withdraw"), callback_data: "withdraw" }],
+          [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
+          [{ text: t(lang, "language"), callback_data: "language" }, { text: t(lang, "support"), callback_data: "support" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
         ]
       }
@@ -431,14 +427,15 @@ export function setupBot() {
     };
   }
 
-  function getDashboardText(lang: string | null | undefined, balance: number, miningRate: number) {
+  function getDashboardText(lang: string | null | undefined, balance: number, miningRate: number, telegramId?: string) {
     return `
-${t(lang, "dashboard")}
+👤 *Account Dashboard*
+🆔 ID: ${telegramId || "Unknown"}
 
-${t(lang, "balance")}: ${balance.toFixed(8)} TON
-${t(lang, "miningSpeed")}: ${miningRate.toFixed(7)} TON / 5 seconds
+💰 ${t(lang, "balance")}: ${balance.toFixed(8)} TON
+⛏️ ${t(lang, "miningSpeed")}: ${miningRate.toFixed(7)} TON / 5 seconds
 
-${t(lang, "miningTagline")}
+💎 ${t(lang, "miningTagline")}
 `;
   }
 
@@ -741,24 +738,6 @@ from that bot here for verification.`;
     }
 
     if (query.data === "account") {
-      let text = t(lang_cb, "accountTitle") + "\n\n";
-      text += `${t(lang_cb, "accountId")}: \`${user.telegramId}\`\n`;
-      text += `${t(lang_cb, "accountLang")}: ${user.language?.toUpperCase() || "N/A"}\n`;
-      text += `${t(lang_cb, "accountReferrals")}: ${user.referralCount || 0}\n`;
-      text += `${t(lang_cb, "accountLevel")}: ${user.miningLevel}\n`;
-      text += `${t(lang_cb, "accountStatus")}: ${user.status}`;
-      
-      const keyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang_cb, "language"), callback_data: "set_language" }],
-            [{ text: t(lang_cb, "support"), callback_data: "support" }],
-            [{ text: t(lang_cb, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      
-      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...keyboard });
       bot?.answerCallbackQuery(query.id);
       return;
     }
