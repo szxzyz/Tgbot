@@ -24,6 +24,11 @@ export const users = pgTable("users", {
   verificationToken: text("verification_token"),
   verificationExpiresAt: timestamp("verification_expires_at"),
   ipAddress: text("ip_address"),
+  deviceId: text("device_id"),
+  authSessionToken: text("auth_session_token"),
+  authSessionExpiresAt: timestamp("auth_session_expires_at"),
+  lastAdWatchTime: timestamp("last_ad_watch_time"),
+  dailyAdsCount: integer("daily_ads_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
