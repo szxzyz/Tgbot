@@ -11,10 +11,8 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Select language / Выберите язык",
     dashboard: "👤 *Account Dashboard*",
     balance: "Balance",
-    miningSpeed: "Mining Speed",
     miningTagline: "TON - Mining without limits",
     refresh: "♻️ Refresh",
-    upgrade: "🚀 Upgrade",
     partners: "👥 Partner",
     withdraw: "🏦 Withdraw",
     info: "ℹ️ Info",
@@ -125,10 +123,8 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Выберите язык / Select language",
     dashboard: "👤 *Account Dashboard*",
     balance: "Баланс",
-    miningSpeed: "Скорость майнинга",
     miningTagline: "TON - Mining without limits",
     refresh: "♻️ Обновить",
-    upgrade: "🚀 Улучшить",
     partners: "👥 Partner",
     withdraw: "🏦 Вывод",
     info: "ℹ️ Инфо",
@@ -386,7 +382,6 @@ export function setupBot() {
         inline_keyboard: [
           [{ text: "📺 Watch Ads & Earn", web_app: { url: webAppUrl } }],
           [{ text: t(lang, "refresh"), callback_data: "refresh" }],
-          [{ text: t(lang, "upgrade"), callback_data: "upgrade" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "language"), callback_data: "language" }, { text: t(lang, "support"), callback_data: "support" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
@@ -436,11 +431,146 @@ export function setupBot() {
 🆔 ID: ${telegramId || "Unknown"}
 
 💰 ${t(lang, "balance")}: ${balance.toFixed(8)} TON
-⛏️ ${t(lang, "miningSpeed")}: ${miningRate.toFixed(7)} TON / 5 seconds
 
 💎 ${t(lang, "miningTagline")}
 `;
   }
+
+  // --- Callback Query Handler ---
+  bot.on("callback_query", async (query) => {
+    const chatId = query.message?.chat.id;
+    const messageId = query.message?.message_id;
+    const telegramId = query.from.id.toString();
+    const data = query.data;
+
+    if (!chatId || !data) return;
+
+    const user = await storage.getUserByTelegramId(telegramId);
+    if (!user) {
+      return bot?.sendMessage(chatId, t(null, "userNotFound"));
+    }
+
+    const lang = user.language;
+
+    try {
+      if (data === "refresh") {
+        const now = Date.now();
+        const lastClaim = user.lastClaimTime;
+        const diffSeconds = Math.floor((now - lastClaim) / 1000);
+        
+        // Mine 0.0000001 TON every 5 seconds (base rate)
+        const minedAmount = (diffSeconds / 5) * 0.0000001;
+        
+        if (minedAmount > 0) {
+          const newBalance = (user.balance || 0) + minedAmount;
+          await storage.updateUser(user.id, { 
+            balance: newBalance,
+            lastClaimTime: now
+          });
+          
+          const dashboardText = getDashboardText(lang, newBalance, 0.0000001, telegramId);
+          bot?.editMessageText(dashboardText, {
+            chat_id: chatId,
+            message_id: messageId,
+            parse_mode: "Markdown",
+            ...getMainMenuKeyboard(lang)
+          });
+          bot?.answerCallbackQuery(query.id, { text: "Balance refreshed!" });
+        } else {
+          bot?.answerCallbackQuery(query.id, { text: "Too early to refresh!" });
+        }
+      } else if (data === "partners") {
+        const webAppUrl = process.env.APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+        const referralLink = `${webAppUrl}?ref=${telegramId}`;
+        const partnersText = `
+👥 *Partners Program*
+Invite friends and earn TON!
+
+Earn *0.008 TON* for each active referral
+
+🔗 *Your Referral Link:*
+\`${referralLink}\`
+
+Total Referrals: ${user.referralCount || 0}
+`;
+        bot?.editMessageText(partnersText, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+          ...getBackButton(lang)
+        });
+        bot?.answerCallbackQuery(query.id);
+      } else if (data === "withdraw") {
+        const withdrawText = `
+🏦 *Withdraw Funds*
+Minimum Withdrawal: 0.5 TON
+
+Your Balance: ${user.balance.toFixed(8)} TON
+
+Please enter your TON wallet address:
+`;
+        bot?.editMessageText(withdrawText, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+          ...getBackButton(lang)
+        });
+        bot?.answerCallbackQuery(query.id);
+      } else if (data === "info") {
+        const infoText = `
+ℹ️ *Information*
+
+🤖 *What is this bot?*
+This is a TON cloud mining simulator. You can mine TON coins and withdraw real rewards.
+
+⚙️ *How it works?*
+1. Press "Refresh" to collect mined TON.
+2. Invite friends to earn faster.
+3. Withdraw earnings to your wallet.
+
+⚠️ *Note:* This is a simulation bot.
+`;
+        bot?.editMessageText(infoText, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+          ...getBackButton(lang)
+        });
+        bot?.answerCallbackQuery(query.id);
+      } else if (data === "language") {
+        bot?.editMessageText(t(lang, "selectLanguage"), {
+          chat_id: chatId,
+          message_id: messageId,
+          ...getLanguageKeyboard()
+        });
+        bot?.answerCallbackQuery(query.id);
+      } else if (data === "back_to_menu") {
+        const dashboardText = getDashboardText(lang, user.balance, 0.0000001, telegramId);
+        bot?.editMessageText(dashboardText, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+          ...getMainMenuKeyboard(lang)
+        });
+        bot?.answerCallbackQuery(query.id);
+      } else if (data.startsWith("set_lang_")) {
+        const selectedLang = data.replace("set_lang_", "");
+        await storage.updateUser(user.id, { language: selectedLang, isOnboarded: true });
+        
+        const dashboardText = getDashboardText(selectedLang, user.balance, 0.0000001, telegramId);
+        bot?.editMessageText(dashboardText, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: "Markdown",
+          ...getMainMenuKeyboard(selectedLang)
+        });
+        bot?.answerCallbackQuery(query.id, { text: "Language updated!" });
+      }
+    } catch (error) {
+      console.error("Callback query error:", error);
+      bot?.answerCallbackQuery(query.id, { text: "An error occurred." });
+    }
+  });
 
   // --- Commands ---
   bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
