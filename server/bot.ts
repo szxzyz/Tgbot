@@ -11,7 +11,6 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Select language / Выберите язык",
     dashboard: "💎 *MY ACCOUNT*",
     balance: "Wallet Balance",
-    refresh: "♻️ Sync Balance",
     partners: "👥 Referrals",
     withdraw: "🏦 Cash Out",
     info: "ℹ️ Guide",
@@ -39,7 +38,7 @@ const translations: Record<string, Record<string, string>> = {
     infoWhat: "🤖 *What is TON Miner?*",
     infoWhatDesc: "A referral platform on Telegram. Invite friends and convert to real rewards.",
     infoHow: "⚙️ *Quick Start*",
-    infoStep1: "1. Use \"Sync Balance\" to collect earnings.",
+    infoStep1: "1. Complete tasks for rewards.",
     infoStep3: "2. \"Invite\" friends for massive bonuses.",
     infoStep4: "3. \"Cash Out\" to your TON wallet.",
     infoNote: "⚠️ *Notice:* This is a simulation platform.",
@@ -108,7 +107,6 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Выберите язык / Select language",
     dashboard: "👤 *Account Dashboard*",
     balance: "Баланс",
-    refresh: "♻️ Обновить",
     partners: "👥 Partner",
     withdraw: "🏦 Вывод",
     info: "ℹ️ Инфо",
@@ -136,7 +134,7 @@ const translations: Record<string, Record<string, string>> = {
     infoWhat: "🤖 *Что это за бот?*",
     infoWhatDesc: "Это платформа для заработка TON. Вы можете приглашать друзей и выводить награды.",
     infoHow: "⚙️ *Как это работает?*",
-    infoStep1: "1. Нажмите \"Обновить\" чтобы синхронизировать баланс.",
+    infoStep1: "1. Выполняйте задания чтобы получать TON.",
     infoStep3: "2. Приглашайте друзей для заработка.",
     infoStep4: "3. Выводите заработок на кошелёк.",
     infoNote: "⚠️ *Примечание:* Это симуляционный бот.",
@@ -307,7 +305,6 @@ export function setupBot() {
       reply_markup: {
         inline_keyboard: [
           [{ text: "📺 Watch Ads & Earn", url: adBotUrl }],
-          [{ text: t(lang, "refresh"), callback_data: "refresh" }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "language"), callback_data: "language" }, { text: t(lang, "support"), callback_data: "support" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
@@ -351,12 +348,20 @@ export function setupBot() {
     };
   }
 
-  function getDashboardText(lang: string | null | undefined, balance: number, telegramId?: string) {
+  function getDashboardText(user: any) {
+    const createdAt = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown";
+    const username = user.username ? `@${user.username}` : "Not set";
+    
     return `
-💎 *MY ACCOUNT*
-🆔 User ID: ${telegramId || "Unknown"}
-
-💰 Wallet Balance: ${balance.toFixed(8)} TON
+✨ *User Profile* ✨
+━━━━━━━━━━━━━━━━━━
+👤 *Username:* ${username}
+🆔 *ID:* \`${user.telegramId}\`
+📅 *Joined:* ${createdAt}
+━━━━━━━━━━━━━━━━━━
+💰 *Wallet Balance*
+*${user.balance.toFixed(8)} TON*
+━━━━━━━━━━━━━━━━━━
 `;
   }
 
@@ -377,33 +382,7 @@ export function setupBot() {
     const lang = user.language;
 
     try {
-      if (data === "refresh") {
-        const now = Date.now();
-        const lastClaim = user.lastClaimTime;
-        const diffSeconds = Math.floor((now - lastClaim) / 1000);
-        
-        // Mine 0.0000001 TON every 5 seconds (base rate)
-        const minedAmount = (diffSeconds / 5) * 0.0000001;
-        
-        if (minedAmount > 0) {
-          const newBalance = (user.balance || 0) + minedAmount;
-          await storage.updateUser(user.id, { 
-            balance: newBalance,
-            lastClaimTime: now
-          });
-          
-          const dashboardText = getDashboardText(lang, newBalance, telegramId);
-          bot?.editMessageText(dashboardText, {
-            chat_id: chatId,
-            message_id: messageId,
-            parse_mode: "Markdown",
-            ...getMainMenuKeyboard(lang)
-          });
-          bot?.answerCallbackQuery(query.id, { text: "Balance refreshed!" });
-        } else {
-          bot?.answerCallbackQuery(query.id, { text: "Too early to refresh!" });
-        }
-      } else if (data === "partners") {
+      if (data === "partners") {
         const webAppUrl = process.env.APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
         const referralLink = `${webAppUrl}?ref=${telegramId}`;
         const partnersText = `
@@ -448,7 +427,7 @@ Please enter your TON wallet address:
 This is a TON referral platform. You can earn TON coins by inviting friends and withdraw real rewards.
 
 ⚙️ *How it works?*
-1. Press "Refresh" to sync your balance.
+1. Complete tasks to earn rewards.
 2. Invite friends to earn rewards.
 3. Withdraw earnings to your wallet.
 
@@ -469,7 +448,7 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
         });
         bot?.answerCallbackQuery(query.id);
       } else if (data === "back_to_menu") {
-        const dashboardText = getDashboardText(lang, user.balance, telegramId);
+        const dashboardText = getDashboardText(user);
         bot?.editMessageText(dashboardText, {
           chat_id: chatId,
           message_id: messageId,
@@ -479,9 +458,9 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
         bot?.answerCallbackQuery(query.id);
       } else if (data.startsWith("set_lang_")) {
         const selectedLang = data.replace("set_lang_", "");
-        await storage.updateUser(user.id, { language: selectedLang, isOnboarded: true });
+        const updatedUser = await storage.updateUser(user.id, { language: selectedLang, isOnboarded: true });
         
-        const dashboardText = getDashboardText(selectedLang, user.balance, 0.0000001, telegramId);
+        const dashboardText = getDashboardText(updatedUser);
         bot?.editMessageText(dashboardText, {
           chat_id: chatId,
           message_id: messageId,
@@ -520,8 +499,6 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
       
       return bot?.sendMessage(chatId, t(null, "selectLanguage"), getLanguageKeyboard());
     }
-
-    const lang_start = user.language;
 
     if (!user.isOnboarded) {
       if (!user.language) {
@@ -564,23 +541,25 @@ from that bot here for verification.`;
           const keyboard = {
             reply_markup: {
               inline_keyboard: [
-                [{ text: t(lang, "startBot"), url: task.link }],
-                [{ text: t(lang, "started"), callback_data: `verify_bot_task_${taskId}` }]
+                [{ text: "🤖 Start Bot", url: task.link }],
+                [{ text: "✅ Started", callback_data: `verify_bot_task_${task.id}` }],
+                [{ text: "↩️ Back", callback_data: "back_to_menu" }]
               ]
             }
           };
           
           bot?.sendMessage(chatId, missionText, { parse_mode: "Markdown", ...keyboard });
         } else if (task.type === "channel") {
-          const missionText = `👉🏻 *Mission: Engage with the channel and join it.*
+          const missionText = `👉🏻 *Mission: Channel Engagement*
 
-❓ After joining, press « ✅ Joined » below.`;
+❓ Join and press « ✅ Verified ».`;
           
           const keyboard = {
             reply_markup: {
               inline_keyboard: [
-                [{ text: t(lang, "subscribeChannel"), url: task.link }],
-                [{ text: t(lang, "joined"), callback_data: `verify_channel_task_${taskId}` }]
+                [{ text: "🚀 Join Channel", url: task.link }],
+                [{ text: "✅ Verified", callback_data: `verify_channel_task_${task.id}` }],
+                [{ text: "↩️ Back", callback_data: "back_to_menu" }]
               ]
             }
           };
@@ -591,16 +570,8 @@ from that bot here for verification.`;
       }
     }
     
-    const now = Date.now();
-    const lastClaim = user.lastClaimTime;
-    const diffSeconds = (now - lastClaim) / 1000;
-    const miningRatePer5Sec = getMiningRate(user.miningLevel, user.referralCount);
-    const miningRatePerSec = miningRatePer5Sec / 5;
-    const minedAmount = diffSeconds * miningRatePerSec;
-    const currentBalance = user.balance + minedAmount;
-    
-    const welcomeText = getDashboardText(user.language, currentBalance, miningRatePer5Sec);
-    bot?.sendMessage(chatId, welcomeText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
+    const dashboardText = getDashboardText(user);
+    bot?.sendMessage(chatId, dashboardText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
   });
 
   const TASK_CHANNEL_ID = "-1002480439556";
@@ -616,368 +587,47 @@ from that bot here for verification.`;
     return !!isSpecial;
   }
 
+  // Handle task verification for bots (forwarded message)
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
     const telegramId = msg.from?.id.toString();
+    const text = msg.text;
+
     if (!telegramId) return;
+
     const user = await storage.getUserByTelegramId(telegramId);
     if (!user) return;
-    const lang_msg = user.language;
 
-    // Handle wallet address input for withdrawal
-    if (msg.text && user.status === "awaiting_withdrawal_address" && !msg.text.startsWith("/")) {
-      const walletAddress = msg.text.trim();
-      if (walletAddress.length < 10) {
-        bot?.sendMessage(chatId, "❌ Invalid wallet address. Please try again.");
-        return;
-      }
-
-      const withdrawal = await storage.createWithdrawal({
-        userId: user.id,
-        amount: user.balance,
-        walletAddress,
-        status: "pending"
-      });
-
-      await storage.updateUser(user.id, { 
-        balance: 0,
-        status: "active"
-      } as any);
-
-      bot?.sendMessage(chatId, `✅ Withdrawal request submitted!\n\n💰 Amount: ${withdrawal.amount.toFixed(4)} TON\n👛 Wallet: \`${withdrawal.walletAddress}\`\n\nWait for admin processing.`, { parse_mode: "Markdown" });
-      return;
-    }
-
-    if (msg.text && ["🇷🇺 Русский", "🇬🇧 English", "🇪🇸 Español", "🇵🇹 Português", "🇫🇷 Français", "🇾🇪 العربية"].includes(msg.text)) {
-      if (!user.language) {
-        const langMap: Record<string, string> = {
-          "🇷🇺 Русский": "ru", "🇬🇧 English": "en", "🇪🇸 Español": "es",
-          "🇵🇹 Português": "pt", "🇫🇷 Français": "fr", "🇾🇪 العربية": "ar"
-        };
-        const selectedLang = langMap[msg.text];
-        await storage.updateUser(user.id, { language: selectedLang, isVerified: true });
-        
-        // Skip verification - go directly to subscription check
-        bot?.sendMessage(msg.chat.id, t(selectedLang, "subscribeMessage"), {
-          ...getSubscribeKeyboard(selectedLang),
-          reply_markup: { ...getSubscribeKeyboard(selectedLang).reply_markup }
-        } as any);
-      }
-    }
-  });
-
-  // --- Callback Queries ---
-  bot.on("callback_query", async (query) => {
-    if (!query.message || !query.data) return;
-    const chatId = query.message.chat.id;
-    const telegramId = query.from.id.toString();
-    const messageId = query.message.message_id;
-
-    if (query.data === "check_subscription") {
-      try {
-        const isSubscribed = true; // Simulated for now
-        
-        if (isSubscribed) {
-          const user = await storage.getUserByTelegramId(telegramId);
-          if (user) {
-            await storage.updateUser(user.id, { isOnboarded: true });
-            await bot?.sendMessage(chatId, t(user.language, "letsGo"));
-            const welcomeText = getDashboardText(user.language, user.balance, getMiningRate(user.miningLevel, user.referralCount));
-            bot?.sendMessage(chatId, welcomeText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
-          }
-        } else {
-          const user = await storage.getUserByTelegramId(telegramId);
-          bot?.answerCallbackQuery(query.id, { text: t(user?.language, "notSubscribed"), show_alert: true });
-        }
-      } catch (e) {
-        const user = await storage.getUserByTelegramId(telegramId);
-        bot?.answerCallbackQuery(query.id, { text: t(user?.language, "subscriptionError"), show_alert: true });
-      }
-      return;
-    }
-
-    const user = await storage.getUserByTelegramId(telegramId);
-    if (!user) {
-      bot?.sendMessage(chatId, t(null, "userNotFound"));
-      return;
-    }
-    const lang_cb = user.language;
-
-    if (query.data.startsWith("set_lang_")) {
-      const selectedLang = query.data.replace("set_lang_", "");
-      await storage.updateUser(user.id, { language: selectedLang });
-      bot?.answerCallbackQuery(query.id, { text: "Language updated!" });
-      
-      if (!user.isOnboarded) {
-        bot?.sendMessage(chatId, t(selectedLang, "subscribeMessage"), getSubscribeKeyboard(selectedLang));
-      } else {
-        const welcomeText = getDashboardText(selectedLang, user.balance, getMiningRate(user.miningLevel, user.referralCount));
-        bot?.sendMessage(chatId, welcomeText, { parse_mode: "Markdown", ...getMainMenuKeyboard(selectedLang) });
-      }
-      return;
-    }
-
-    if (query.data === "upgrade") {
-      const currentLevel = user.miningLevel || 1;
-      const nextLevel = currentLevel + 1;
-      const cost = UPGRADE_COSTS[nextLevel];
-      
-      let text = t(lang_cb, "upgradeTitle") + "\n\n";
-      text += `${t(lang_cb, "currentLevel")}: ${currentLevel}\n`;
-      text += `${t(lang_cb, "speed")}: ${getMiningRate(currentLevel).toFixed(7)} TON / 5s\n\n`;
-      
-      if (cost) {
-        text += `${t(lang_cb, "nextLevel")}: ${nextLevel}\n`;
-        text += `${t(lang_cb, "speed")}: ${getMiningRate(nextLevel).toFixed(7)} TON / 5s\n`;
-        text += `${t(lang_cb, "cost")}: ${cost} TON\n\n`;
-        text += `${t(lang_cb, "yourBalance")}: ${user.balance.toFixed(4)} TON`;
-        
-        const keyboard = {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: t(lang_cb, "buyLevel"), callback_data: `buy_level_${nextLevel}` }],
-              [{ text: t(lang_cb, "back"), callback_data: "back_to_menu" }]
-            ]
-          }
-        };
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...keyboard });
-      } else {
-        text += t(lang_cb, "maxLevelReached");
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getBackButton(lang_cb) });
-      }
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data.startsWith("buy_level_")) {
-      const targetLevel = parseInt(query.data.split("_")[2]);
-      const currentLevel = user.miningLevel || 1;
-      
-      if (targetLevel !== currentLevel + 1) {
-        bot?.answerCallbackQuery(query.id, { text: t(lang_cb, "upgradeOneLevel"), show_alert: true });
-        return;
-      }
-      
-      const cost = UPGRADE_COSTS[targetLevel];
-      if (user.balance < cost) {
-        bot?.answerCallbackQuery(query.id, { text: t(lang_cb, "insufficientFunds"), show_alert: true });
-        return;
-      }
-      
-      await storage.updateUser(user.id, { 
-        balance: user.balance - cost,
-        miningLevel: targetLevel
-      });
-      
-      bot?.answerCallbackQuery(query.id, { text: t(lang_cb, "upgradeSuccess"), show_alert: true });
-      // Refresh to main menu
-      const updatedUser = await storage.getUser(user.id);
-      if (updatedUser) {
-        const text = getDashboardText(lang_cb, updatedUser.balance, getMiningRate(updatedUser.miningLevel, updatedUser.referralCount));
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getMainMenuKeyboard(lang_cb) });
-      }
-      return;
-    }
-
-    if (query.data === "partners") {
-      const myBot = await bot?.getMe();
-      const referralLink = `https://t.me/${myBot?.username}?start=${user.telegramId}`;
-      let text = t(lang_cb, "partnersTitle") + "\n\n";
-      text += t(lang_cb, "partnersDesc") + "\n\n";
-      text += t(lang_cb, "partnersReward").replace("{amount}", REFERRAL_REWARD.toString()) + "\n";
-      text += t(lang_cb, "partnersBonus") + "\n\n";
-      text += `${t(lang_cb, "totalReferrals")}: ${user.referralCount || 0}\n\n`;
-      text += `${t(lang_cb, "referralLink")}\n\`${referralLink}\``;
-      
-      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getBackButton(lang_cb) });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "account") {
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "earnings") {
-      const activeTasks = await storage.getActiveTasksForUser(user.id);
-      let text = t(lang_cb, "taskList") + "\n\n";
-      
-      if (activeTasks.length === 0) {
-        text += t(lang_cb, "noTasks");
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getBackButton(lang_cb) });
-      } else {
-        const inline_keyboard = activeTasks.map(task => ([{
-          text: task.title,
-          callback_data: `view_task_${task.id}`
-        }]));
-        inline_keyboard.push([{ text: t(lang_cb, "back"), callback_data: "back_to_menu" }]);
-        
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", reply_markup: { inline_keyboard } });
-      }
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data.startsWith("view_task_")) {
-      const taskId = parseInt(query.data.split("_")[2]);
-      const task = await storage.getTask(taskId);
-      if (task) {
-        const text = `📌 *${task.title}*\n\n${task.description}\n\n💰 Reward: ${task.reward} TON`;
-        const keyboard = {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "Go to Task", url: task.link }],
-              [{ text: t(lang_cb, "check"), callback_data: `verify_${task.type}_task_${taskId}` }],
-              [{ text: t(lang_cb, "back"), callback_data: "earnings" }]
-            ]
-          }
-        };
-        bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...keyboard });
-      }
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "withdraw") {
-      let text = t(lang_cb, "withdrawTitle") + "\n\n";
-      text += `${t(lang_cb, "yourBalance")}: ${user.balance.toFixed(4)} TON\n`;
-      text += `${t(lang_cb, "minWithdraw")}: 0.5 TON`;
-      
-      const keyboard = {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: t(lang_cb, "requestWithdraw"), callback_data: "start_withdraw" }],
-            [{ text: t(lang_cb, "back"), callback_data: "back_to_menu" }]
-          ]
-        }
-      };
-      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...keyboard });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "start_withdraw") {
-      if (user.balance < 0.5) {
-        bot?.answerCallbackQuery(query.id, { text: t(lang_cb, "insufficientBalance"), show_alert: true });
-        return;
-      }
-      await storage.updateUser(user.id, { status: "awaiting_withdrawal_address" } as any);
-      bot?.sendMessage(chatId, t(lang_cb, "enterWallet"));
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "info") {
-      let text = t(lang_cb, "infoTitle") + "\n\n";
-      text += t(lang_cb, "infoWhat") + "\n";
-      text += t(lang_cb, "infoWhatDesc") + "\n\n";
-      text += t(lang_cb, "infoHow") + "\n";
-      text += `${t(lang_cb, "infoStep1")}\n${t(lang_cb, "infoStep2")}\n${t(lang_cb, "infoStep3")}\n${t(lang_cb, "infoStep4")}\n\n`;
-      text += t(lang_cb, "infoNote");
-      
-      bot?.editMessageText(text, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getBackButton(lang_cb) });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "back_to_main") {
-      const welcomeText = getDashboardText(lang_cb, user.balance, getMiningRate(user.miningLevel, user.referralCount));
-      bot?.editMessageText(welcomeText, { chat_id: chatId, message_id: messageId, parse_mode: "Markdown", ...getMainMenuKeyboard(lang_cb) });
-      bot?.answerCallbackQuery(query.id);
-      return;
-    }
-
-    if (query.data === "launch_app") {
-      const userResult = await storage.getUserByTelegramId(query.from?.id.toString() || "");
-      if (!userResult) return;
-      const token = crypto.randomBytes(16).toString("hex");
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
-      await storage.updateUser(userResult.id, {
-        authSessionToken: token,
-        authSessionExpiresAt: expiresAt
-      });
-
-      const webAppUrl = process.env.APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
-      const launchUrl = `${webAppUrl}/?userId=${userResult.telegramId}&token=${token}`;
-      
-      bot?.editMessageText("🚀 Launching Ad Watch App...", {
-        chat_id: chatId,
-        message_id: query.message?.message_id,
-        reply_markup: {
-          inline_keyboard: [[{ text: "▶️ Open App", url: launchUrl }]]
-        }
-      });
-    } else if (query.data === "back_to_menu" || query.data === "refresh") {
-      await storage.updateUser(user.id, { status: "active" } as any);
-      const now = Date.now();
-      const lastClaim = user.lastClaimTime;
-      const diffSeconds = (now - lastClaim) / 1000;
-      const miningRatePer5Sec = getMiningRate(user.miningLevel, user.referralCount);
-      const miningRatePerSec = miningRatePer5Sec / 5;
-      
-      const minedAmount = diffSeconds * miningRatePerSec;
-      const newBalance = user.balance + minedAmount;
-      await storage.updateUser(user.id, {
-        balance: newBalance,
-        lastClaimTime: now
-      });
-
-      const text = getDashboardText(lang_cb, newBalance, miningRatePer5Sec);
-      
-      try {
-        await bot?.editMessageText(text, {
-          chat_id: chatId,
-          message_id: messageId,
-          parse_mode: "Markdown",
-          reply_markup: getMainMenuKeyboard(lang_cb).reply_markup
-        });
-      } catch (e) {
-        // Message might not have changed
-      }
-
-    } else if (query.data.startsWith("verify_channel_task_")) {
-      const taskId = parseInt(query.data.split("_")[3]);
-      const task = await storage.getTask(taskId);
-      if (!task) return;
-
-      try {
-        const channelUsername = task.targetBotUsername?.startsWith("@") 
-          ? task.targetBotUsername 
-          : `@${task.targetBotUsername}`;
-          
-        const chatMember = await bot?.getChatMember(channelUsername, parseInt(telegramId));
-        if (chatMember && ["member", "administrator", "creator"].includes(chatMember.status)) {
-          const userTask = await storage.getUserTask(user.id, task.id);
-          if (userTask?.status === "completed") {
-            bot?.answerCallbackQuery(query.id, { text: "Task already completed!", show_alert: true });
-            return;
-          }
-
+    if (msg.forward_from_chat || msg.forward_from) {
+      const pendingTask = await storage.getPendingUserTask(user.id);
+      if (pendingTask) {
+        const task = await storage.getTask(pendingTask.taskId);
+        if (task && task.type === "bot") {
           await storage.updateUser(user.id, { balance: (user.balance || 0) + task.reward });
           await storage.updateUserTask(user.id, task.id, { status: "completed", verifiedAt: new Date() });
           await storage.incrementTaskCompletion(task.id);
-          bot?.answerCallbackQuery(query.id, { text: "✅ Reward credited!", show_alert: true });
+          bot?.sendMessage(chatId, "✅ Reward credited!");
           
-          const updatedUser = await storage.getUser(user.id);
-          if (updatedUser) {
-            const userLang = updatedUser.language || 'en';
-            const text = getDashboardText(userLang, updatedUser.balance, getMiningRate(updatedUser.miningLevel, updatedUser.referralCount));
-            bot?.sendMessage(chatId, text, {
-              parse_mode: "Markdown",
-              reply_markup: getMainMenuKeyboard(userLang).reply_markup
-            });
-          }
-        } else {
-          bot?.answerCallbackQuery(query.id, { text: t(user.language, "notJoined"), show_alert: true });
+          const dashboardText = getDashboardText(user.language, (user.balance || 0) + task.reward, user.telegramId);
+          bot?.sendMessage(chatId, dashboardText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
         }
-      } catch (e) {
-        bot?.answerCallbackQuery(query.id, { text: t(user.language, "subscriptionError"), show_alert: true });
       }
       return;
-    } else if (query.data.startsWith("verify_bot_task_")) {
-      bot?.sendMessage(chatId, t(user.language, "forwardBotMsg"), { reply_markup: { force_reply: true } });
-      return;
+    }
+
+    if (!text) return;
+
+    // Admin commands
+    if (isAdmin(telegramId) && text === "/admin") {
+      const stats = await storage.getStats();
+      const adminText = `
+👑 *Admin Panel*
+
+👥 Total Users: ${stats.totalUsers}
+💰 Total Balance: ${stats.totalBalance.toFixed(2)} TON
+🏦 Total Withdrawals: ${stats.totalWithdrawals}
+`;
+      bot?.sendMessage(chatId, adminText, { parse_mode: "Markdown" });
     }
   });
 }
