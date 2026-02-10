@@ -11,7 +11,6 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Select language / Выберите язык",
     dashboard: "💎 *MY ACCOUNT*",
     balance: "Wallet Balance",
-    miningTagline: "⛏️ Cloud Mining Active",
     refresh: "♻️ Sync Balance",
     partners: "👥 Referrals",
     withdraw: "🏦 Cash Out",
@@ -20,25 +19,13 @@ const translations: Record<string, Record<string, string>> = {
     subscribe: "🚀 Join Channel",
     subscribed: "✅ Verified",
     subscribeMessage: "😉 Please join our official channel to unlock all features",
-    letsGo: "🏂 Start Mining!",
+    letsGo: "🏂 Start!",
     userNotFound: "⚠️ User profile not found. Type /start",
-    maxLevelReached: "🚀 Maximum Level Reached!",
-    upgradeTitle: "🚀 *Speed Upgrade*",
-    currentLevel: "Current Power",
-    nextLevel: "Target Power",
-    speed: "Mining Rate",
-    cost: "Price",
-    yourBalance: "💰 Available",
-    buyLevel: "Upgrade Now",
-    upgradeOneLevel: "⚠️ Step-by-step upgrades only.",
-    insufficientFunds: "❌ Not enough TON!",
-    upgradeSuccess: "✅ Power boosted!",
     partnersTitle: "👥 *Referral Program*",
     partnersDesc: "Grow your network and earn more!",
     partnersReward: "Get *{amount} TON* per active friend",
-    partnersBonus: "+10% speed bonus (active with 1+ referral)",
     shareReferral: "🔗 Copy Link",
-    shareReferralMessage: "🚀 Start earning TON with me!\n\nMine TON every second using this bot.\nJoin now and get faster mining speed 💰\n\n👉 Start here: {link}",
+    shareReferralMessage: "🚀 Start earning TON with me!\n\nJoin now and get rewards 💰\n\n👉 Start here: {link}",
     language: "🌎 Language",
     support: "📞 Support",
     notification: "🔔 Alerts",
@@ -50,12 +37,11 @@ const translations: Record<string, Record<string, string>> = {
     totalReferrals: "Friends Invited",
     infoTitle: "ℹ️ *Help Center*",
     infoWhat: "🤖 *What is TON Miner?*",
-    infoWhatDesc: "A next-gen cloud mining simulator on Telegram. Mine virtual TON, upgrade your hash rate, and convert to real rewards.",
+    infoWhatDesc: "A referral platform on Telegram. Invite friends and convert to real rewards.",
     infoHow: "⚙️ *Quick Start*",
     infoStep1: "1. Use \"Sync Balance\" to collect earnings.",
-    infoStep2: "2. \"Upgrade\" for faster mining.",
-    infoStep3: "3. \"Invite\" friends for massive bonuses.",
-    infoStep4: "4. \"Cash Out\" to your TON wallet.",
+    infoStep3: "2. \"Invite\" friends for massive bonuses.",
+    infoStep4: "3. \"Cash Out\" to your TON wallet.",
     infoNote: "⚠️ *Notice:* This is a simulation platform.",
     infoEarnings: "💸 *Rewards & Tasks*",
     earningsTitle: "💸 Earn More",
@@ -70,7 +56,6 @@ const translations: Record<string, Record<string, string>> = {
     accountLang: "🗣️ Language",
     accountReferrals: "👥 Friends",
     accountJoined: "📅 Member Since",
-    accountLevel: "⚡ Hash Level",
     accountStatus: "🟢 Account Status",
     withdrawTitle: "🏦 *Cash Out Funds*",
     minWithdraw: "⚠️ Min. Payout",
@@ -123,7 +108,6 @@ const translations: Record<string, Record<string, string>> = {
     selectLanguage: "Выберите язык / Select language",
     dashboard: "👤 *Account Dashboard*",
     balance: "Баланс",
-    miningTagline: "TON - Mining without limits",
     refresh: "♻️ Обновить",
     partners: "👥 Partner",
     withdraw: "🏦 Вывод",
@@ -134,23 +118,11 @@ const translations: Record<string, Record<string, string>> = {
     subscribeMessage: "😉 Подпишитесь на наш канал, чтобы начать",
     letsGo: "🏂 Поехали!",
     userNotFound: "⚠️ Пользователь не найден. Напишите /start",
-    maxLevelReached: "🚀 Достигнут максимальный уровень!",
-    upgradeTitle: "🚀 *Улучшить скорость майнинга*",
-    currentLevel: "Текущий уровень",
-    nextLevel: "Следующий уровень",
-    speed: "Скорость",
-    cost: "Стоимость",
-    yourBalance: "💰 Ваш баланс",
-    buyLevel: "Купить уровень",
-    upgradeOneLevel: "⚠️ Можно улучшить только на один уровень.",
-    insufficientFunds: "❌ Недостаточно средств!",
-    upgradeSuccess: "✅ Улучшение успешно!",
     partnersTitle: "👥 *Партнёрская программа*",
     partnersDesc: "Приглашайте друзей и зарабатывайте TON!",
     partnersReward: "Получайте *{amount} TON* за каждого активного реферала",
-    partnersBonus: "+10% бонус к скорости майнинга (активен с рефералами)",
     shareReferral: "🔗 Поделиться",
-    shareReferralMessage: "🚀 Начни зарабатывать TON со мной!\n\nМайни TON каждую секунду с этим ботом.\nПрисоединяйся и получи ускоренный майнинг 💰\n\n👉 Начать: {link}",
+    shareReferralMessage: "🚀 Начни зарабатывать TON со мной!\n\nПрисоединяйся и получай награды 💰\n\n👉 Начать: {link}",
     language: "🌎 Language",
     support: "📞 Support",
     notification: "🔔 Уведомления",
@@ -162,12 +134,11 @@ const translations: Record<string, Record<string, string>> = {
     totalReferrals: "Всего рефералов",
     infoTitle: "ℹ️ *Информация*",
     infoWhat: "🤖 *Что это за бот?*",
-    infoWhatDesc: "Это симулятор облачного майнинга TON. Вы можете майнить TON, улучшать свою ферму и выводить награды.",
+    infoWhatDesc: "Это платформа для заработка TON. Вы можете приглашать друзей и выводить награды.",
     infoHow: "⚙️ *Как это работает?*",
-    infoStep1: "1. Нажмите \"Обновить\" чтобы собрать TON.",
-    infoStep2: "2. Используйте \"Улучшить\" для увеличения скорости.",
-    infoStep3: "3. Приглашайте друзей для быстрого заработка.",
-    infoStep4: "4. Выводите заработок на кошелёк.",
+    infoStep1: "1. Нажмите \"Обновить\" чтобы синхронизировать баланс.",
+    infoStep3: "2. Приглашайте друзей для заработка.",
+    infoStep4: "3. Выводите заработок на кошелёк.",
     infoNote: "⚠️ *Примечание:* Это симуляционный бот.",
     infoEarnings: "💸 *Заработок и задания*",
     earningsTitle: "💸 Заработок",
@@ -182,7 +153,6 @@ const translations: Record<string, Record<string, string>> = {
     accountLang: "🗣️ Язык",
     accountReferrals: "👥 Рефералы",
     accountJoined: "📅 Регистрация",
-    accountLevel: "⚡ Уровень",
     accountStatus: "🟢 Статус",
     withdrawTitle: "🏦 *Вывод средств*",
     minWithdraw: "⚠️ Минимальный вывод",
@@ -218,40 +188,6 @@ function t(lang: string | null | undefined, key: string): string {
   const language = lang || "en";
   return translations[language]?.[key] || translations.en[key] || key;
 }
-
-// Constants
-const MINING_SPEEDS: Record<number, number> = {
-  1: 0.0000001,
-  2: 0.0000025,
-  3: 0.0000075,
-  4: 0.0000175,
-  5: 0.0000375,
-  6: 0.0000775,
-  7: 0.0001375,
-  8: 0.0002175,
-  9: 0.0003175,
-  10: 0.0005175,
-  11: 0.0008175,
-  12: 0.0012175,
-  13: 0.0017175,
-  14: 0.0027175,
-};
-
-const UPGRADE_COSTS: Record<number, number> = {
-  2: 0.5,
-  3: 1,
-  4: 2,
-  5: 4,
-  6: 8,
-  7: 12,
-  8: 16,
-  9: 20,
-  10: 40,
-  11: 60,
-  12: 80,
-  13: 100,
-  14: 200,
-};
 
 const REFERRAL_REWARD = 0.008;
 
@@ -337,7 +273,6 @@ export function setupBot() {
           referrerId: referrerId || null,
           referralCount: 0,
           balance: 0,
-          miningLevel: 1,
           isPremium: false,
           status: "active"
         });
@@ -364,15 +299,6 @@ export function setupBot() {
       }
     }
     return user;
-  }
-
-  function getMiningRate(level: number, referralCount: number = 0) {
-    const baseRate = MINING_SPEEDS[level] || MINING_SPEEDS[1];
-    // Apply +10% bonus if user has at least 1 active referral
-    if (referralCount >= 1) {
-      return baseRate * 1.10;
-    }
-    return baseRate;
   }
 
   function getMainMenuKeyboard(lang: string | null | undefined) {
@@ -425,14 +351,12 @@ export function setupBot() {
     };
   }
 
-  function getDashboardText(lang: string | null | undefined, balance: number, miningRate: number, telegramId?: string) {
+  function getDashboardText(lang: string | null | undefined, balance: number, telegramId?: string) {
     return `
 💎 *MY ACCOUNT*
 🆔 User ID: ${telegramId || "Unknown"}
 
 💰 Wallet Balance: ${balance.toFixed(8)} TON
-
-⛏️ Cloud Mining Active
 `;
   }
 
@@ -468,7 +392,7 @@ export function setupBot() {
             lastClaimTime: now
           });
           
-          const dashboardText = getDashboardText(lang, newBalance, 0.0000001, telegramId);
+          const dashboardText = getDashboardText(lang, newBalance, telegramId);
           bot?.editMessageText(dashboardText, {
             chat_id: chatId,
             message_id: messageId,
@@ -521,14 +445,14 @@ Please enter your TON wallet address:
 ℹ️ *Information*
 
 🤖 *What is this bot?*
-This is a TON cloud mining simulator. You can mine TON coins and withdraw real rewards.
+This is a TON referral platform. You can earn TON coins by inviting friends and withdraw real rewards.
 
 ⚙️ *How it works?*
-1. Press "Refresh" to collect mined TON.
-2. Invite friends to earn faster.
+1. Press "Refresh" to sync your balance.
+2. Invite friends to earn rewards.
 3. Withdraw earnings to your wallet.
 
-⚠️ *Note:* This is a simulation bot.
+⚠️ *Notice:* This is a simulation platform.
 `;
         bot?.editMessageText(infoText, {
           chat_id: chatId,
@@ -545,7 +469,7 @@ This is a TON cloud mining simulator. You can mine TON coins and withdraw real r
         });
         bot?.answerCallbackQuery(query.id);
       } else if (data === "back_to_menu") {
-        const dashboardText = getDashboardText(lang, user.balance, 0.0000001, telegramId);
+        const dashboardText = getDashboardText(lang, user.balance, telegramId);
         bot?.editMessageText(dashboardText, {
           chat_id: chatId,
           message_id: messageId,
