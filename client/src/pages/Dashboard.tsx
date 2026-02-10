@@ -47,7 +47,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
           <PageHeader 
             title="Dashboard Overview" 
-            description="Real-time monitoring of mining activities."
+            description="Real-time monitoring of activities."
           >
             <button className="px-3 py-2 sm:px-4 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-medium transition-colors">
               Refresh Data

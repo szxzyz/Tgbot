@@ -50,7 +50,6 @@ export default function Users() {
                         <th className="p-4 pl-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">User</th>
                         <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Telegram ID</th>
                         <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Balance</th>
-                        <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mining Level</th>
                         <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
                         <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                       </tr>
@@ -71,12 +70,6 @@ export default function Users() {
                           </td>
                           <td className="p-4 text-sm font-mono text-muted-foreground">{user.telegramId}</td>
                           <td className="p-4 text-sm font-bold text-green-400">{user.balance.toFixed(4)} TON</td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 w-fit">
-                              <Trophy className="w-3 h-3 text-amber-500" />
-                              <span className="text-xs font-bold text-amber-500">Lvl {user.miningLevel}</span>
-                            </div>
-                          </td>
                           <td className="p-4 text-sm text-muted-foreground">
                             {user.createdAt ? format(new Date(user.createdAt), "MMM d, yyyy") : "-"}
                           </td>
@@ -124,13 +117,6 @@ export default function Users() {
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Balance</div>
                         <div className="font-bold text-green-400">{user.balance.toFixed(4)} TON</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Level</div>
-                        <div className="flex items-center gap-1.5">
-                          <Trophy className="w-3 h-3 text-amber-500" />
-                          <span className="font-bold text-amber-500">Lvl {user.miningLevel}</span>
-                        </div>
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Telegram ID</div>
