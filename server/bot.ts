@@ -35,10 +35,10 @@ const translations: Record<string, Record<string, string>> = {
     referralLink: "🔗 *Personal Invite Link:*",
     totalReferrals: "Friends Invited",
     infoTitle: "ℹ️ *Help Center*",
-    infoWhat: "🤖 *What is TON Miner?*",
-    infoWhatDesc: "A referral platform on Telegram. Invite friends and convert to real rewards.",
+    infoWhat: "🤖 *What is TON Watch?*",
+    infoWhatDesc: "A platform on Telegram where you can earn TON by watching ads. Invite friends and convert to real rewards.",
     infoHow: "⚙️ *Quick Start*",
-    infoStep1: "1. Complete tasks for rewards.",
+    infoStep1: "1. Watch ads to earn TON.",
     infoStep3: "2. \"Invite\" friends for massive bonuses.",
     infoStep4: "3. \"Cash Out\" to your TON wallet.",
     infoNote: "⚠️ *Notice:* This is a simulation platform.",
@@ -608,7 +608,8 @@ from that bot here for verification.`;
           await storage.incrementTaskCompletion(task.id);
           bot?.sendMessage(chatId, "✅ Reward credited!");
           
-          const dashboardText = getDashboardText(user.language, (user.balance || 0) + task.reward, user.telegramId);
+          const updatedUser = await storage.getUserByTelegramId(user.telegramId);
+          const dashboardText = getDashboardText(updatedUser || user);
           bot?.sendMessage(chatId, dashboardText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
         }
       }
