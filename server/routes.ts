@@ -41,6 +41,41 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/ads/complete", async (req, res) => {
+    try {
+      const { userId, token, deviceId, ad_completed } = req.body;
+      const user = await storage.getUserByTelegramId(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      // Anti-fraud: device check
+      if (user.deviceId && user.deviceId !== deviceId) {
+        return res.json({ success: false, message: "Fraud detected" });
+      }
+
+      // Cooldown check (60s)
+      const now = new Date();
+      if (user.lastAdWatchTime && (now.getTime() - new Date(user.lastAdWatchTime).getTime() < 60000)) {
+        return res.json({ success: false, message: "Cooldown active" });
+      }
+
+      if (ad_completed) {
+        const reward = 0.005; // Standard ad reward
+        await storage.updateUser(user.id, {
+          balance: (user.balance || 0) + reward,
+          lastAdWatchTime: now,
+          dailyAdsCount: (user.dailyAdsCount || 0) + 1,
+          deviceId: deviceId || user.deviceId // Link device on first successful watch
+        });
+        
+        res.json({ success: true, message: "🎉 Ad completed successfully. Reward will be credited shortly" });
+      } else {
+        res.json({ success: false });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/verify", async (req, res) => {
     const { token } = req.query;
     if (!token) return res.status(400).send("Missing token");
@@ -76,7 +111,7 @@ export async function registerRoutes(
 
   app.patch(api.admin.withdrawals.updateStatus.path, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       const { status } = api.admin.withdrawals.updateStatus.input.parse(req.body);
       
       const withdrawal = await storage.updateWithdrawalStatus(id, status);

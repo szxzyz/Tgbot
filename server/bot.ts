@@ -258,6 +258,8 @@ export function setupBot() {
     const telegramId = msg.from?.id.toString();
     if (!telegramId) return null;
 
+    const webAppUrl = process.env.APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+
     let user = await storage.getUserByTelegramId(telegramId);
     
     if (!user) {
@@ -299,12 +301,12 @@ export function setupBot() {
     return user;
   }
 
-  function getMainMenuKeyboard(lang: string | null | undefined) {
-    const adBotUrl = "https://t.me/TONAdzbot/EARN";
+  function getMainMenuKeyboard(lang: string | null | undefined, telegramId: string) {
+    const webAppUrl = process.env.APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
     return {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "📺 Watch Ads & Earn", url: adBotUrl }],
+          [{ text: "📺 Watch Ads & Earn", url: `${webAppUrl}?userId=${telegramId}&token=${crypto.randomBytes(16).toString('hex')}` }],
           [{ text: t(lang, "partners"), callback_data: "partners" }, { text: t(lang, "withdraw"), callback_data: "withdraw" }],
           [{ text: t(lang, "language"), callback_data: "language" }, { text: t(lang, "support"), callback_data: "support" }],
           [{ text: t(lang, "info"), callback_data: "info" }]
@@ -453,7 +455,7 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
           chat_id: chatId,
           message_id: messageId,
           parse_mode: "Markdown",
-          ...getMainMenuKeyboard(lang)
+          ...getMainMenuKeyboard(lang, telegramId)
         });
         bot?.answerCallbackQuery(query.id);
       } else if (data.startsWith("set_lang_")) {
@@ -465,7 +467,7 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
           chat_id: chatId,
           message_id: messageId,
           parse_mode: "Markdown",
-          ...getMainMenuKeyboard(selectedLang)
+          ...getMainMenuKeyboard(selectedLang, telegramId)
         });
         bot?.answerCallbackQuery(query.id, { text: "Language updated!" });
       }
@@ -504,8 +506,13 @@ This is a TON referral platform. You can earn TON coins by inviting friends and 
       if (!user.language) {
         return bot?.sendMessage(chatId, t(null, "selectLanguage"), getLanguageKeyboard());
       }
-      // Skip verification - go directly to subscription check
-      return bot?.sendMessage(chatId, t(user.language, "subscribeMessage"), getSubscribeKeyboard(user.language));
+      // Skip verification - go directly to dashboard
+      await storage.updateUser(user.id, { isOnboarded: true });
+      const dashboardText = getDashboardText(user);
+      return bot?.sendMessage(chatId, dashboardText, { 
+        parse_mode: "Markdown", 
+        ...getMainMenuKeyboard(user.language, user.telegramId) 
+      });
     }
     
     // Handle task link for existing onboarded users
@@ -608,7 +615,8 @@ from that bot here for verification.`;
           await storage.incrementTaskCompletion(task.id);
           bot?.sendMessage(chatId, "✅ Reward credited!");
           
-          const dashboardText = getDashboardText(user.language, (user.balance || 0) + task.reward, user.telegramId);
+          const updatedUser = { ...user, balance: (user.balance || 0) + task.reward };
+          const dashboardText = getDashboardText(updatedUser);
           bot?.sendMessage(chatId, dashboardText, { parse_mode: "Markdown", ...getMainMenuKeyboard(user.language) });
         }
       }
