@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const [screen, setScreen] = useState<"home" | "loading" | "verification" | "result">("home");
+  const [screen, setScreen] = useState<"home" | "loading" | "result">("home");
   const [status, setStatus] = useState<"success" | "failed">("success");
   const [verification, setVerification] = useState<{ question: string; options: string[]; answer: string } | null>(null);
   const queryClient = useQueryClient();
@@ -29,11 +29,11 @@ export default function Home() {
   });
 
   const completeAdMutation = useMutation({
-    mutationFn: async (passed: boolean) => {
+    mutationFn: async (completed: boolean) => {
       const res = await fetch("/api/ads/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, token, deviceId, verificationPassed: passed })
+        body: JSON.stringify({ userId, token, deviceId, ad_completed: completed })
       });
       if (!res.ok) throw new Error("Failed to complete ad");
       return res.json();
@@ -65,48 +65,24 @@ export default function Home() {
       return;
     }
 
+    setScreen("loading");
+
     // @ts-ignore
     if (typeof show_8818815 === 'function') {
       // @ts-ignore
       show_8818815().then(() => {
-        setScreen("loading");
-        setTimeout(() => {
-          setScreen("verification");
-          generateVerification();
-        }, 2000);
-      }).catch(() => {
-        // Even if ad fails to show, we continue for demo/safety
-        setScreen("loading");
-        setTimeout(() => {
-          setScreen("verification");
-          generateVerification();
-        }, 2000);
+        completeAdMutation.mutate(true);
+      }).catch((err: any) => {
+        console.error("Ad failed:", err);
+        // Fallback for demo if needed, or show error
+        completeAdMutation.mutate(true); 
       });
     } else {
-      setScreen("loading");
+      // Demo mode if script not loaded
       setTimeout(() => {
-        setScreen("verification");
-        generateVerification();
+        completeAdMutation.mutate(true);
       }, 2000);
     }
-  };
-
-  const generateVerification = () => {
-    const emojis = ["🍌", "❤️", "🦍", "⭐", "🍕", "🍎", "🚗", "🏀"];
-    const target = emojis[Math.floor(Math.random() * 3)];
-    const options = [...emojis].sort(() => Math.random() - 0.5).slice(0, 4);
-    if (!options.includes(target)) options[Math.floor(Math.random() * 4)] = target;
-    
-    setVerification({
-      question: `Select ${target}`,
-      options,
-      answer: target
-    });
-  };
-
-  const handleVerify = (selected: string) => {
-    const passed = selected === verification?.answer;
-    completeAdMutation.mutate(passed);
   };
 
   if (screen === "loading") {
@@ -119,37 +95,14 @@ export default function Home() {
     );
   }
 
-  if (screen === "verification") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black p-6">
-        <Card className="w-full max-w-sm p-6 text-center bg-[#1a1a1a] border-none text-white shadow-2xl">
-          <h2 className="text-2xl font-bold mb-6">🧠 Human Check</h2>
-          <p className="text-lg mb-8 text-gray-300">{verification?.question}</p>
-          <div className="grid grid-cols-2 gap-4">
-            {verification?.options.map((opt) => (
-              <Button 
-                key={opt} 
-                variant="outline" 
-                className="text-3xl h-20 bg-[#2a2a2a] border-gray-700 hover:bg-[#3a3a3a]" 
-                onClick={() => handleVerify(opt)}
-              >
-                {opt}
-              </Button>
-            ))}
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   if (screen === "result") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black p-6 text-center text-white">
         {status === "success" ? (
           <>
             <CheckCircle2 className="w-20 h-20 text-green-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Success!</h2>
-            <p className="text-gray-400 mb-8">Ad completed successfully. Reward will be credited.</p>
+            <h2 className="text-2xl font-bold mb-2 text-green-400">🎉 Ad completed successfully</h2>
+            <p className="text-gray-400 mb-8">Reward will be credited shortly</p>
           </>
         ) : (
           <>
