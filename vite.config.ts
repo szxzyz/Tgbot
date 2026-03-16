@@ -2,24 +2,19 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
+          // Only load Replit plugins in development
+          await import("@replit/vite-plugin-runtime-error-modal").then((m) => m.default()).catch(() => null),
+          await import("@replit/vite-plugin-cartographer").then((m) => m.cartographer()).catch(() => null),
+        ].filter(Boolean)
       : []),
   ],
   resolve: {
@@ -30,8 +25,13 @@ export default defineConfig({
     },
   },
   root: path.resolve(__dirname, "client"),
+  build: {
+    outDir: path.resolve(__dirname, "dist/public"),
+    emptyOutDir: true,
+  },
   server: {
     host: "0.0.0.0",
+    port: 5000,
     allowedHosts: true,
     hmr: {
       clientPort: 443,
@@ -39,18 +39,6 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ["**/.*"],
-    },
-  },
-  build: {
-    outDir: path.resolve(__dirname, "dist/public"),
-    emptyOutDir: true,
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "lucide-react", "recharts"],
-        },
-      },
     },
   },
 });
