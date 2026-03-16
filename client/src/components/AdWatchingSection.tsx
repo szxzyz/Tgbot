@@ -51,10 +51,11 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
       return response.json();
     },
     onSuccess: async (data) => {
-      const rewardAmount = data?.rewardBoost || (section === 'section1' ? 0.0015 : 0.0001);
-      showNotification(`+${rewardAmount} Mining speed boost earned!`, "success");
+      const rewardAmount = data?.rewardSAT || data?.rewardBoost || (section === 'section1' ? 1000 : 500);
+      showNotification(`+${Math.round(rewardAmount).toLocaleString()} SAT earned!`, "success");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
     },
     onError: (error: any) => {
       sessionRewardedRef.current = false;
@@ -226,8 +227,8 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     : (parseInt(appSettings?.ad_section2_limit || '250'));
 
   const sectionReward = section === 'section1'
-    ? (appSettings?.ad_section1_reward || '0.0015')
-    : (appSettings?.ad_section2_reward || '0.0001');
+    ? (appSettings?.ad_section1_reward || '0.25')
+    : (appSettings?.ad_section2_reward || '0.25');
 
   return (
     <div className="bg-[#141414] border border-white/5 rounded-2xl p-3 flex flex-col gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
@@ -243,7 +244,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col gap-0.5">
-            <span className="text-white text-[12px] font-black tabular-nums leading-none">{sectionReward}/h</span>
+            <span className="text-white text-[12px] font-black tabular-nums leading-none">{parseFloat(sectionReward).toLocaleString()} SAT</span>
             <span className="text-[#8E8E93] text-[9px] font-bold uppercase tracking-wider leading-none">AD ({adsWatchedToday}/{dailyLimit})</span>
           </div>
         </div>
