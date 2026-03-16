@@ -10,7 +10,6 @@ import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
 import InvitePopup from "@/components/InvitePopup";
 import { useLanguage } from "@/hooks/useLanguage";
-import { MatrixMiningCounter } from "@/components/MatrixMiningCounter";
 import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Zap, Settings, Film, Tv, ClipboardList, UserPlus, Share2, Copy, HandCoins, LogOut, Download, ShieldCheck, Menu } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
@@ -129,82 +128,6 @@ export default function Home() {
     retry: false,
   });
 
-  const { data: miningState, isLoading: isLoadingMining } = useQuery<any>({
-    queryKey: ['/api/mining/state'],
-    retry: false,
-    staleTime: 10000,
-  });
-
-  const miningStateData = miningState || {};
-  const [miningAmount, setMiningAmount] = useState(0);
-  const activeBoosts = miningStateData.boosts || [];
-  
-  const miningRate = parseFloat(miningStateData.rawMiningRate || "0.00001");
-  const miningRatePerHour = miningRate * 3600;
-
-  useEffect(() => {
-    if (miningStateData.currentMining) {
-      setMiningAmount(parseFloat(miningStateData.currentMining));
-    }
-  }, [miningStateData.currentMining]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMiningAmount(prev => prev + miningRate);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [miningRate]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      queryClient.setQueryData(['/api/mining/state'], (old: any) => {
-        if (!old || !old.boosts) return old;
-        return {
-          ...old,
-          boosts: old.boosts.map((b: any) => ({
-            ...b,
-            remainingTime: Math.max(0, b.remainingTime - 1)
-          }))
-        };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [queryClient]);
-
-  const formatRemainingTime = (seconds: number) => {
-    if (seconds <= 0) return "Expired";
-    const days = Math.floor(seconds / (24 * 3600));
-    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (days > 0) return `${days}d ${hours}h`;
-    return `${hours}h ${minutes}m ${secs}s`;
-  };
-
-  const claimMiningMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/mining/claim");
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to claim mining');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
-      showNotification(`+${Math.floor(parseFloat(data.amount)).toLocaleString()} SAT claimed from mining!`, "success");
-    },
-    onError: (error: any) => {
-      showNotification(error.message, "error");
-    },
-  });
-
-  const minMiningClaim = 1;
-  const canClaimMining = miningState && parseFloat(miningState.currentMining || "0") >= minMiningClaim;
-
-  // Render mining section (need to find where it is in the file)
 
   const { data: userData } = useQuery<{ referralCode?: string }>({
     queryKey: ['/api/auth/user'],
@@ -998,7 +921,7 @@ export default function Home() {
   const handleShareWithFriends = useCallback(() => {
     if (!referralLink) return;
     const tgWebApp = (window as any).Telegram?.WebApp;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on this Mine-to-Earn app and start stacking SAT together!")}`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on this Watch-to-Earn app and start stacking SAT together!")}`;
     if (tgWebApp?.openTelegramLink) {
       tgWebApp.openTelegramLink(shareUrl);
     } else {
@@ -1116,16 +1039,6 @@ export default function Home() {
 
   const userRank = leaderboardData?.userEarnerRank?.rank;
 
-  // Values are now derived from miningState above
-
-  const handleClaimClick = () => {
-    if (miningAmount < 1) {
-      showNotification("Minimum claim is 1 SAT", "error");
-      return;
-    }
-    claimMiningMutation.mutate();
-  };
-
   return (
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-0">
@@ -1172,7 +1085,7 @@ export default function Home() {
 
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total SAT Mined</span>
+              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total SAT Earned</span>
               <div className="flex items-center gap-1.5 leading-none">
                 <img src="/sat-icon.png" alt="SAT" className="w-4 h-4 rounded-full object-cover" />
                 <span className="text-white text-base font-black tabular-nums">
@@ -1183,13 +1096,13 @@ export default function Home() {
             </div>
             <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Mining Rate</span>
+              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Ads Watched Today</span>
               <div className="flex items-center gap-1.5 leading-none">
-                <img src="/sat-icon.png" alt="SAT" className="w-4 h-4 rounded-full object-cover" />
+                <Play className="w-3.5 h-3.5 text-[#F5C542]" />
                 <span className="text-white text-base font-black tabular-nums">
-                  {miningRatePerHour.toFixed(4)}
+                  {(user?.adSection1Count || 0) + (user?.adSection2Count || 0)}
                 </span>
-                <span className="text-[#8E8E93] text-[10px] font-bold">SAT/h</span>
+                <span className="text-[#8E8E93] text-[10px] font-bold">ADS</span>
               </div>
             </div>
           </div>
@@ -1199,63 +1112,22 @@ export default function Home() {
           <div className="w-full">
               <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
+                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Watch Ads & Earn Sats</span>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-blue-500 text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
+                    <div className="w-1.5 h-1.5 bg-[#F5C542] rounded-full animate-pulse"></div>
+                    <span className="text-[#F5C542] text-[10px] font-black uppercase tracking-widest">Live</span>
                   </div>
                 </div>
-                
-                <div className="mb-4">
-                  <MatrixMiningCounter miningAmount={miningAmount} miningRate={miningRate} />
-                </div>
 
-                {activeBoosts.length > 0 && (
-                  <div className="mb-4 space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-3 h-3 text-[#8E8E93]" />
-                      <span className="text-[#8E8E93] text-[9px] font-black uppercase tracking-widest">Active Boosters</span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      {activeBoosts.map((boost: any) => (
-                        <div key={boost.id} className="bg-white/5 rounded-xl p-3 border border-white/5 flex justify-between items-center">
-                          <div className="space-y-0.5 text-left">
-                            <div className="text-white text-[10px] font-black uppercase tracking-tight">Mining Boost</div>
-                            <div className="text-white text-[9px] font-bold">+{boost.miningRate} SAT/h</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[#8E8E93] text-[8px] font-black uppercase tracking-widest">Expires In</div>
-                            <div className="text-white text-[10px] font-bold tabular-nums">
-                              {formatRemainingTime(boost.remainingTime)}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <p className="text-[#8E8E93] text-[11px] mb-4">Earn Sats by watching ads. Each ad watched instantly adds SAT to your balance.</p>
 
-                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                <div className="pt-3 border-t border-white/5">
                   <Button
                     onClick={() => setWithdrawPopupOpen(true)}
                     className="w-full h-11 bg-[#F5C542] hover:bg-yellow-400 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-yellow-500/20"
                   >
                     <Download className="w-4 h-4" />
                     Withdraw
-                  </Button>
-                  <Button
-                    onClick={handleClaimClick}
-                    disabled={claimMiningMutation.isPending || !canClaimMining}
-                    className="w-full h-11 bg-[#F5C542] hover:bg-yellow-400 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-yellow-500/20 disabled:opacity-50"
-                  >
-                    {claimMiningMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <HandCoins className="w-4 h-4" />
-                        Claim
-                      </>
-                    )}
                   </Button>
                 </div>
               </div>
