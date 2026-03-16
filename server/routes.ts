@@ -404,8 +404,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         withdrawal_fee_ton: settingsMap['withdrawal_fee_ton'] || '0',
         ad_section1_limit: settingsMap['ad_section1_limit'] || '250',
         ad_section2_limit: settingsMap['ad_section2_limit'] || '250',
-        ad_section1_reward: settingsMap['ad_section1_reward'] || '0.0015',
-        ad_section2_reward: settingsMap['ad_section2_reward'] || '0.0001',
+        ad_section1_reward: settingsMap['ad_section1_reward'] || '0.25',
+        ad_section2_reward: settingsMap['ad_section2_reward'] || '0.25',
       });
     } catch (error) {
       res.json({ 
@@ -603,37 +603,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(429).json({ message: `Daily ad limit reached for this section (${dailyLimit} ads/day)` });
       }
 
-      // Determine which section boost to apply
-      let boostAmount = 0;
+      // Determine direct SAT reward per ad watch
+      let satReward = 0;
       let updateFields: any = {};
-      
+
       if (section === 'section1') {
-        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.0015');
-        boostAmount = parseFloat(rewardStr);
+        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.25');
+        satReward = parseFloat(rewardStr);
         updateFields = {
-          adSection1Boost: (parseFloat(user.adSection1Boost || "0") + boostAmount).toString(),
           adSection1Count: (user.adSection1Count || 0) + 1
         };
       } else if (section === 'section2') {
-        const rewardStr = await storage.getAppSetting('ad_section2_reward', '0.0001');
-        boostAmount = parseFloat(rewardStr);
+        const rewardStr = await storage.getAppSetting('ad_section2_reward', '0.25');
+        satReward = parseFloat(rewardStr);
         updateFields = {
-          adSection2Boost: (parseFloat(user.adSection2Boost || "0") + boostAmount).toString(),
           adSection2Count: (user.adSection2Count || 0) + 1
         };
       } else {
-        // Legacy or single section fallback
-        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.0015');
-        boostAmount = parseFloat(rewardStr);
+        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.25');
+        satReward = parseFloat(rewardStr);
         updateFields = {
-          adSection1Boost: (parseFloat(user.adSection1Boost || "0") + boostAmount).toString(),
           adSection1Count: (user.adSection1Count || 0) + 1
         };
       }
 
+      // Add SAT directly to user balance
+      const currentBalance = parseFloat(user.balance || "0");
+      const newBalance = currentBalance + satReward;
+
       await db.update(users)
         .set({
           ...updateFields,
+          balance: newBalance.toString(),
           adsWatchedToday: (user.adsWatchedToday || 0) + 1,
           updatedAt: new Date()
         })
@@ -644,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         newBalance: updatedUser?.balance,
         adsWatchedToday: updatedUser?.adsWatchedToday,
-        rewardBoost: boostAmount,
+        rewardSAT: satReward,
         section: section || 'section1'
       });
     } catch (error) {
@@ -3590,9 +3591,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         minimumConvertPadToBug: parseInt(getSetting('minimum_convert_pad_to_bug', '1000')),
         bugPerUsd: parseInt(getSetting('bug_per_usd', '10000')),
         withdrawalBugRequirementEnabled: getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true',
-        ad_section1_reward: getSetting('ad_section1_reward', '0.0015'),
+        ad_section1_reward: getSetting('ad_section1_reward', '0.25'),
         ad_section1_limit: getSetting('ad_section1_limit', '250'),
-        ad_section2_reward: getSetting('ad_section2_reward', '0.0001'),
+        ad_section2_reward: getSetting('ad_section2_reward', '0.25'),
         ad_section2_limit: getSetting('ad_section2_limit', '250'),
         withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
       });
@@ -8231,204 +8232,14 @@ ${walletAddress}
     }
   });
 
-  // ArcPay Integration Routes
-  const { createArcPayCheckout, verifyArcPayWebhookSignature, parseArcPayWebhook } = await import('./arcpay');
+  // ArcPay routes removed
 
-  // Create ArcPay payment checkout
-  app.post('/api/arcpay/create-payment', authenticateTelegram, async (req: any, res) => {
-    try {
-      // Get user ID from the authenticated user object
-      // authenticateTelegram sets req.user as { telegramUser: {...}, user: {...} }
-      const userId = req.user?.user?.id;
-      const userEmail = req.user?.user?.email;
-
-      // Accept both tonAmount (new) and pdzAmount (legacy) for backward compatibility
-      const tonAmount = req.body.tonAmount ?? req.body.pdzAmount;
-
-      if (!userId) {
-        console.error('❌ ArcPay: No user ID found in authenticated request:', {
-          hasUser: !!req.user,
-          userKeys: req.user ? Object.keys(req.user) : null,
-          hasUserObject: !!req.user?.user
-        });
-        return res.status(401).json({ error: 'Unauthorized - user not found' });
-      }
-
-      // Validate amount - differentiate between empty/invalid vs too small
-      console.log(`💳 Payment request - amount: ${tonAmount}, type: ${typeof tonAmount}`);
-
-      // Check if amount is missing or not a number
-      if (tonAmount === undefined || tonAmount === null || typeof tonAmount !== 'number') {
-        console.error(`❌ Invalid amount type: ${typeof tonAmount}, value: ${tonAmount}`);
-        return res.status(400).json({ error: 'Enter valid amount' });
-      }
-
-      // Check if amount is 0 or negative
-      if (isNaN(tonAmount) || tonAmount <= 0) {
-        console.error(`❌ Invalid amount value: ${tonAmount}`);
-        return res.status(400).json({ error: 'Enter valid amount' });
-      }
-
-      // Check if amount is below minimum
-      if (tonAmount < 0.1) {
-        console.error(`❌ Amount below minimum: ${tonAmount} < 0.1`);
-        return res.status(400).json({ error: 'Minimum top-up is 0.1 ' });
-      }
-
-      console.log(`✅ Amount validated: ${tonAmount}  - creating ArcPay payment for user ${userId}`);
-
-      // Create checkout
-      const result = await createArcPayCheckout(tonAmount, userId, userEmail);
-
-      if (!result.success) {
-        return res.status(400).json({ error: result.error });
-      }
-
-      res.json({
-        success: true,
-        paymentUrl: result.paymentUrl,
-      });
-    } catch (error: any) {
-      console.error('❌ Error creating ArcPay payment:', error);
-      res.status(500).json({ error: 'Failed to create payment request' });
-    }
+  app.post('/api/arcpay/create-payment', async (req: any, res) => {
+    return res.status(410).json({ error: 'ArcPay integration removed' });
   });
 
-  // ArcPay Webhook Handler
   app.post('/arcpay/webhook', async (req: any, res) => {
-    try {
-      const rawBody = JSON.stringify(req.body);
-      const signature = req.headers['x-arcpay-signature'] || '';
-
-      console.log('🔔 ArcPay webhook received:', {
-        eventType: req.body.event,
-        orderId: req.body.order_id,
-      });
-
-      // Verify webhook signature (disable for testing, enable in production)
-      // const isValid = verifyArcPayWebhookSignature(rawBody, signature);
-      // if (!isValid) {
-      //   console.error('❌ Invalid webhook signature');
-      //   return res.status(401).json({ error: 'Invalid signature' });
-      // }
-
-      // Parse webhook payload
-      const webhook = parseArcPayWebhook(rawBody);
-      if (!webhook) {
-        return res.status(400).json({ error: 'Invalid webhook payload' });
-      }
-
-      const { event, order_id, status, amount, metadata } = webhook;
-      const userId = metadata?.userId;
-      // Accept both tonAmount (new) and pdzAmount (legacy) for backward compatibility
-      const tonAmount = metadata?.tonAmount || metadata?.pdzAmount || amount;
-
-      if (!userId) {
-        console.error('❌ No userId in webhook metadata');
-        return res.status(400).json({ error: 'Missing user information' });
-      }
-
-      // Handle payment success
-      if (event === 'payment.success' && status === 'completed') {
-        console.log(`✅ Payment successful for user ${userId}, crediting ${tonAmount} TON`);
-
-        try {
-          // Get user
-          const user = await storage.getUser(userId);
-          if (!user) {
-            console.error(`❌ User not found: ${userId}`);
-            return res.status(404).json({ error: 'User not found' });
-          }
-
-          // Credit  to user
-          const currentTon = parseFloat(user.tonBalance?.toString() || '0');
-          const newTon = currentTon + tonAmount;
-
-          // Update user's  balance
-          await db.update(users).set({
-            tonBalance: newTon.toString(),
-            updatedAt: new Date(),
-          }).where(eq(users.id, userId));
-
-          // Record transaction
-          await db.insert(transactions).values({
-            userId,
-            amount: tonAmount.toString(),
-            type: 'addition',
-            source: 'arcpay_ton_topup',
-            description: `Top-up ${tonAmount}  via ArcPay (Order: ${order_id})`,
-            metadata: {
-              orderId: order_id,
-              arcpayAmount: amount,
-              arcpayCurrency: webhook.currency,
-              transactionHash: webhook.transaction_hash,
-            },
-          });
-
-          console.log(`💚  balance updated for user ${userId}: +${tonAmount} (Total: ${newTon})`);
-
-          // CRITICAL: Send real-time update via WebSocket to the user's frontend
-          sendRealtimeUpdate(userId, {
-            type: 'balance_update',
-            tonBalance: newTon.toString(),
-            message: `🎉 Top-up successful! +${tonAmount}  credited.`
-          });
-
-          // Send notification to user via Telegram
-          try {
-            const message = `🎉 Top-up successful!\n\n✅ You received ${tonAmount} TON\n💎 New balance: ${newTon} TON`;
-            await sendUserTelegramNotification(userId, message);
-          } catch (notifError) {
-            console.warn('⚠️ Failed to send Telegram notification:', notifError);
-          }
-
-          return res.json({
-            success: true,
-            message: ' credited successfully',
-            newBalance: newTon,
-          });
-        } catch (dbError) {
-          console.error('❌ Error crediting TON:', dbError);
-          return res.status(500).json({ error: 'Failed to credit ' });
-        }
-      }
-
-      // Handle payment failure
-      if (event === 'payment.failed' && status === 'failed') {
-        console.log(`❌ Payment failed for user ${userId}`);
-
-        try {
-          await sendUserTelegramNotification(
-            userId,
-            `❌ Payment failed for order ${order_id}. Please try again.`
-          );
-        } catch (notifError) {
-          console.warn('⚠️ Failed to send Telegram notification:', notifError);
-        }
-
-        return res.json({
-          success: true,
-          message: 'Payment failure recorded',
-        });
-      }
-
-      // Handle pending payments
-      if (event === 'payment.pending' && status === 'pending') {
-        console.log(`⏳ Payment pending for user ${userId}, order ${order_id}`);
-        return res.json({
-          success: true,
-          message: 'Payment pending',
-        });
-      }
-
-      return res.json({
-        success: true,
-        message: 'Webhook processed',
-      });
-    } catch (error) {
-      console.error('❌ Webhook processing error:', error);
-      res.status(500).json({ error: 'Webhook processing failed' });
-    }
+    return res.status(410).json({ error: 'ArcPay integration removed' });
   });
 
   app.post("/api/shop/buy-plan", authenticateTelegram, async (req: any, res) => {
