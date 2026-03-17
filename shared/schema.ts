@@ -390,6 +390,79 @@ export const userReferralTasks = pgTable("user_referral_tasks", {
   unique("user_referral_tasks_user_task_unique").on(table.userId, table.taskId),
 ]);
 
+// Videos table - admin-uploaded video content
+export const videos = pgTable("videos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").references(() => users.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoUrl: text("video_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  priceInSats: integer("price_in_sats").default(0).notNull(),
+  views: integer("views").default(0).notNull(),
+  likesCount: integer("likes_count").default(0).notNull(),
+  dislikesCount: integer("dislikes_count").default(0).notNull(),
+  commentsCount: integer("comments_count").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Video unlocks - tracks which users have paid to watch which videos
+export const videoUnlocks = pgTable("video_unlocks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  videoId: varchar("video_id").references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+}, (table) => [
+  unique("video_unlocks_user_video_unique").on(table.userId, table.videoId),
+]);
+
+// Video likes/dislikes
+export const videoReactions = pgTable("video_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  videoId: varchar("video_id").references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  reactionType: varchar("reaction_type").notNull(), // 'like' or 'dislike'
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("video_reactions_user_video_unique").on(table.userId, table.videoId),
+]);
+
+// Video comments
+export const videoComments = pgTable("video_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  videoId: varchar("video_id").references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Video saves
+export const videoSaves = pgTable("video_saves", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  videoId: varchar("video_id").references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  savedAt: timestamp("saved_at").defaultNow(),
+}, (table) => [
+  unique("video_saves_user_video_unique").on(table.userId, table.videoId),
+]);
+
+// Insert schemas for video tables
+export const insertVideoSchema = createInsertSchema(videos).omit({ id: true, createdAt: true, updatedAt: true, views: true, likesCount: true, dislikesCount: true, commentsCount: true });
+export const insertVideoUnlockSchema = createInsertSchema(videoUnlocks).omit({ id: true, unlockedAt: true });
+export const insertVideoReactionSchema = createInsertSchema(videoReactions).omit({ id: true, createdAt: true });
+export const insertVideoCommentSchema = createInsertSchema(videoComments).omit({ id: true, createdAt: true });
+export const insertVideoSaveSchema = createInsertSchema(videoSaves).omit({ id: true, savedAt: true });
+
+// Types for video tables
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
+export type VideoUnlock = typeof videoUnlocks.$inferSelect;
+export type VideoReaction = typeof videoReactions.$inferSelect;
+export type VideoComment = typeof videoComments.$inferSelect;
+export type VideoSave = typeof videoSaves.$inferSelect;
+
 // Types
 export type UserReferralTask = typeof userReferralTasks.$inferSelect;
 export type InsertUserReferralTask = typeof userReferralTasks.$inferInsert;
