@@ -43,7 +43,7 @@ function LoadingFallback() {
           </div>
         </div>
         <div className="text-center">
-          <h1 className="text-white font-black text-lg tracking-widest uppercase">Lightning Sats</h1>
+          <h1 className="text-white font-black text-lg tracking-widest uppercase">ANX</h1>
           <p className="text-[#8E8E93] text-[10px] font-semibold uppercase tracking-widest mt-1">Mine · Earn · Withdraw</p>
         </div>
         <div className="flex items-center gap-1.5 mt-2">
@@ -397,7 +397,7 @@ function App() {
           {/* App name */}
           <div className="text-center">
             <h1 className="text-white font-black text-lg tracking-widest uppercase">
-              Lightning Sats
+              ANX
             </h1>
             <p className="text-[#8E8E93] text-[10px] font-semibold uppercase tracking-widest mt-1">
               Mine · Earn · Withdraw
