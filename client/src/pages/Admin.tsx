@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -53,7 +53,7 @@ interface AdminStats {
   totalWithdrawals: string;
 }
 
-type AdminTab = "summary" | "users" | "withdrawals" | "bans" | "countries" | "settings" | "videos";
+type AdminTab = "summary" | "users" | "withdrawals" | "bans" | "countries" | "settings";
 
 function MiniToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -142,7 +142,6 @@ export default function AdminPage() {
 
   const tabs: { id: AdminTab; label: string; icon: any }[] = [
     { id: "summary", label: "Summary", icon: TrendingUp },
-    { id: "videos", label: "Videos", icon: Eye },
     { id: "users", label: "Users", icon: Users },
     { id: "withdrawals", label: "Withdrawals", icon: DollarSign },
     { id: "bans", label: "Bans", icon: Shield },
@@ -194,7 +193,6 @@ export default function AdminPage() {
 
         <div className="px-4 pt-4">
           {activeTab === "summary" && <SummarySection stats={stats} isLoading={statsLoading} />}
-          {activeTab === "videos" && <VideoSection />}
           {activeTab === "users" && <UserSection usersData={usersData} isLoading={usersLoading} />}
           {activeTab === "withdrawals" && <WithdrawSection payoutData={payoutData} pendingData={pendingPayouts} />}
           {activeTab === "bans" && <BanSection />}
@@ -1327,173 +1325,6 @@ function CountrySection() {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-interface AdminVideo {
-  id: string;
-  title: string;
-  description: string | null;
-  videoUrl: string;
-  thumbnailUrl: string | null;
-  priceInSats: number;
-  views: number;
-  likesCount: number;
-  commentsCount: number;
-  isActive: boolean;
-  createdAt: string;
-}
-
-function VideoSection() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editingVideo, setEditingVideo] = useState<AdminVideo | null>(null);
-  const [form, setForm] = useState({ title: '', description: '', videoUrl: '', thumbnailUrl: '', priceInSats: '0' });
-
-  const { data, isLoading, refetch } = useQuery<{ success: boolean; videos: AdminVideo[] }>({
-    queryKey: ['/api/admin/videos'],
-    queryFn: () => apiRequest('GET', '/api/admin/videos').then(r => r.json()),
-  });
-
-  const resetForm = () => {
-    setForm({ title: '', description: '', videoUrl: '', thumbnailUrl: '', priceInSats: '0' });
-    setEditingVideo(null);
-    setShowForm(false);
-  };
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (editingVideo) {
-        return apiRequest('PUT', `/api/admin/videos/${editingVideo.id}`, form).then(r => r.json());
-      }
-      return apiRequest('POST', '/api/admin/videos', form).then(r => r.json());
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        toast({ title: editingVideo ? 'Video updated!' : 'Video created!' });
-        resetForm();
-        refetch();
-      } else {
-        toast({ title: data.message || 'Failed', variant: 'destructive' });
-      }
-    },
-    onError: () => toast({ title: 'Failed to save video', variant: 'destructive' }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/admin/videos/${id}`).then(r => r.json()),
-    onSuccess: () => {
-      toast({ title: 'Video deleted' });
-      refetch();
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      apiRequest('PUT', `/api/admin/videos/${id}`, { isActive: !isActive }).then(r => r.json()),
-    onSuccess: () => refetch(),
-  });
-
-  const startEdit = (v: AdminVideo) => {
-    setEditingVideo(v);
-    setForm({ title: v.title, description: v.description || '', videoUrl: v.videoUrl, thumbnailUrl: v.thumbnailUrl || '', priceInSats: v.priceInSats.toString() });
-    setShowForm(true);
-  };
-
-  const videos = data?.videos || [];
-
-  return (
-    <div className="space-y-4 pb-20">
-      <div className="flex items-center justify-between">
-        <h2 className="text-white font-bold flex items-center gap-2">
-          <Eye className="w-4 h-4 text-blue-400" />
-          Video Management
-        </h2>
-        <Button size="sm" onClick={() => { resetForm(); setShowForm(true); }} className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3">
-          + Add Video
-        </Button>
-      </div>
-
-      {/* Video Form */}
-      {showForm && (
-        <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-4 space-y-3">
-          <h3 className="text-white text-sm font-semibold">{editingVideo ? 'Edit Video' : 'New Video'}</h3>
-          <div>
-            <Label className="text-xs text-gray-400">Title *</Label>
-            <Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Video title" className="mt-1 bg-white/5 border-white/10 text-white text-sm h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-400">Description</Label>
-            <Input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Optional description" className="mt-1 bg-white/5 border-white/10 text-white text-sm h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-400">Video URL * (YouTube, direct MP4, etc.)</Label>
-            <Input value={form.videoUrl} onChange={e => setForm(p => ({ ...p, videoUrl: e.target.value }))} placeholder="https://youtube.com/watch?v=..." className="mt-1 bg-white/5 border-white/10 text-white text-sm h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-400">Thumbnail URL (optional)</Label>
-            <Input value={form.thumbnailUrl} onChange={e => setForm(p => ({ ...p, thumbnailUrl: e.target.value }))} placeholder="https://..." className="mt-1 bg-white/5 border-white/10 text-white text-sm h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-400">Price in SAT (0 = free)</Label>
-            <Input type="number" min="0" value={form.priceInSats} onChange={e => setForm(p => ({ ...p, priceInSats: e.target.value }))} className="mt-1 bg-white/5 border-white/10 text-white text-sm h-9" />
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => saveMutation.mutate()} disabled={!form.title || !form.videoUrl || saveMutation.isPending} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-              {saveMutation.isPending ? 'Saving...' : (editingVideo ? 'Update' : 'Create')}
-            </Button>
-            <Button size="sm" variant="outline" onClick={resetForm} className="border-white/20 text-white">
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Videos List */}
-      {isLoading ? (
-        <div className="text-center py-10 text-gray-400 text-sm">Loading videos...</div>
-      ) : videos.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-sm">No videos yet. Add one above.</div>
-      ) : (
-        <div className="space-y-3">
-          {videos.map(v => (
-            <div key={v.id} className="bg-[#0f0f0f] border border-white/8 rounded-xl p-3">
-              <div className="flex items-start gap-3">
-                {v.thumbnailUrl ? (
-                  <img src={v.thumbnailUrl} alt={v.title} className="w-16 h-10 object-cover rounded-lg flex-shrink-0" />
-                ) : (
-                  <div className="w-16 h-10 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Eye className="w-4 h-4 text-white/30" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">{v.title}</p>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-[10px] text-amber-400">{v.priceInSats === 0 ? 'Free' : `${v.priceInSats.toLocaleString()} SAT`}</span>
-                    <span className="text-[10px] text-gray-500">{v.views} views</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${v.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                      {v.isActive ? 'Active' : 'Hidden'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <Button size="sm" variant="outline" onClick={() => startEdit(v)} className="text-xs h-7 border-white/10 text-white flex-1">
-                  Edit
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleActiveMutation.mutate({ id: v.id, isActive: v.isActive })} className={`text-xs h-7 flex-1 border-white/10 ${v.isActive ? 'text-red-400' : 'text-green-400'}`}>
-                  {v.isActive ? 'Hide' : 'Show'}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => { if (confirm('Delete this video?')) deleteMutation.mutate(v.id); }} className="text-xs h-7 border-red-500/30 text-red-400 hover:bg-red-500/10">
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
