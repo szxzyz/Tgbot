@@ -273,7 +273,7 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${format$(deposit.amount)} SAT has been approved and credited to your account!`);
+        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${format$(deposit.amount)} ANX has been approved and credited to your account!`);
       }
 
       const updatedText = message.text + "\n\n✅ <b>Status: APPROVED</b>";
@@ -292,7 +292,7 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${format$(deposit.amount)} SAT was rejected by admin.`);
+        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${format$(deposit.amount)} ANX was rejected by admin.`);
       }
 
       const updatedText = message.text + "\n\n❌ <b>Status: REJECTED</b>";
@@ -320,7 +320,7 @@ export async function sendDepositNotificationToAdmin(deposit: any, user: any): P
                `👤 User: ${user.firstName || user.username}\n` +
                `🆔 Telegram ID: <code>${user.telegram_id}</code>\n` +
                `💳 Username: ${user.username ? `@${user.username}` : 'N/A'}\n` +
-               `💵 Amount: ${format$(deposit.amount)} SAT\n` +
+               `💵 Amount: ${format$(deposit.amount)} ANX\n` +
                `📝 Memo: <code>${user.telegram_id}</code>\n` +
                `📅 Date: ${new Date().toLocaleString()}\n` +
                `\nStatus: Pending`;
@@ -478,8 +478,8 @@ export async function sendWithdrawalRequestNotification(withdrawal: any, user: a
                  `🆔 User ID: <code>${userTelegramId}</code>\n` +
                  `💳 Username: ${userTelegramUsername}\n` +
                  `🌐 Address:\n<code>${walletAddress}</code>\n` +
-                 `💸 Amount: ${format$(netAmount)} SAT\n` +
-                 `🛂 Fee: ${format$(feeAmount)} SAT (${feePercent}%)\n` +
+                 `💸 Amount: ${format$(netAmount)} ANX\n` +
+                 `🛂 Fee: ${format$(feeAmount)} ANX (${feePercent}%)\n` +
                  `📅 Date: ${currentDate}\n` +
                  `🤖 Bot: @${_botName}`;
 
@@ -543,8 +543,8 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 <code>${walletAddress}</code>
-💸 Amount: ${format$(netAmount)} SAT
-🛂 Fee: ${format$(feeAmount)} SAT (${feePercent}%)
+💸 Amount: ${format$(netAmount)} ANX
+🛂 Fee: ${format$(feeAmount)} ANX (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @${_approvalBotName}`;
 
@@ -592,7 +592,7 @@ export async function sendReferralRewardNotification(
     const message = `🎉 <b>New Referral Activity!</b>
 
 Your friend <b>${safeName}</b> watched their first ad.
-💰 You earned <b>${formatted} SAT</b>
+💰 You earned <b>${formatted} ANX</b>
 
 Keep inviting more friends to earn more!`;
 
@@ -685,14 +685,14 @@ export async function formatWelcomeMessage(): Promise<{ message: string; inlineK
   const channelUrl = 'https://t.me/LightningSatoshi';
   const groupUrl = 'https://t.me/LightningSatCommunity';
   
-  const message = `🚀 It's Time to Start Mining Sats\n\n` +
+  const message = `🚀 It's Time to Start Mining ANX\n\n` +
                  `The journey has begun.\n` +
-                 `Who knows how many Satoshis you'll earn, how fast your balance will grow, or who you'll invite along the way?\n\n` +
+                 `Who knows how much ANX you'll earn, how fast your balance will grow, or who you'll invite along the way?\n\n` +
                  `One thing is certain: the earning journey has started.\n\n` +
                  `⚡ Mine daily to boost your earnings\n` +
                  `👥 Invite friends and earn together\n` +
-                 `💰 Collect Sats and withdraw anytime\n\n` +
-                 `Join now and don't miss your chance to start stacking Satoshi.`;
+                 `💰 Collect ANX and withdraw anytime\n\n` +
+                 `Join now and don't miss your chance to start stacking ANX.`;
 
   const inlineKeyboard = {
     inline_keyboard: [
@@ -877,9 +877,9 @@ export async function handleInlineQuery(inlineQuery: any): Promise<boolean> {
         id: `share_${user.referralCode}_${Date.now()}`,
         photo_url: shareImageUrl,
         thumbnail_url: shareImageUrl,
-        title: '⛏️ Start Mining — Earn SAT!',
-        description: 'Join and earn SAT (Bitcoin) by mining daily and completing simple tasks!',
-        caption: '⛏️ Mine daily and earn real Bitcoin (SAT).',
+        title: '⛏️ Start Mining — Earn ANX!',
+        description: 'Join and earn ANX by mining daily and completing simple tasks!',
+        caption: '⛏️ Mine daily and earn ANX.',
         parse_mode: 'HTML',
         reply_markup: {
           inline_keyboard: [
@@ -897,10 +897,10 @@ export async function handleInlineQuery(inlineQuery: any): Promise<boolean> {
         type: 'article',
         id: `article_${user.referralCode}_${Date.now()}`,
         title: '💸 Share with friends',
-        description: 'Share and earn bonus Hrum for every friend who joins!',
+        description: 'Share and earn bonus ANX for every friend who joins!',
         thumbnail_url: shareImageUrl,
         input_message_content: {
-          message_text: '⛏️ <b>Mine-to-Earn — Start Mining SAT Today!</b>\n\n🎯 Join and earn Bitcoin (SAT) by mining daily and completing simple tasks!\n\n👇 Click the button below to start mining:',
+          message_text: '⛏️ <b>Mine-to-Earn — Start Mining ANX Today!</b>\n\n🎯 Join and earn ANX by mining daily and completing simple tasks!\n\n👇 Click the button below to start mining:',
           parse_mode: 'HTML'
         },
         reply_markup: {
@@ -989,13 +989,13 @@ export async function handleTelegramMessage(update: any): Promise<boolean> {
             
             const inviteMessage = `👫🏼 <b>Invite Your Friends!</b>
 
-Share your unique referral link and earn Hrum when your friends join:
+Share your unique referral link and earn ANX when your friends join:
 
 🔗 <code>${referralLink}</code>
 
 📋 Just tap the link above to copy it, then share it with your friends!
 
-💰 You'll earn bonus Hrum for every friend who joins using your link.`;
+💰 You'll earn bonus ANX for every friend who joins using your link.`;
 
             await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
               method: 'POST',
@@ -1034,7 +1034,7 @@ Share your unique referral link and earn Hrum when your friends join:
         try {
           const stats = await storage.getAppStats();
           
-          const statsMessage = `📊 Application Stats\n\n👥 Total Registered Users: ${stats.totalUsers.toLocaleString()}\n👤 Active Users Today: ${stats.activeUsersToday}\n🔗 Total Friends Invited: ${stats.totalInvites.toLocaleString()}\n\n💰 Total Earnings (All Users): ${Math.floor(parseFloat(stats.totalEarnings))} SAT\n💎 Total Referral Earnings: ${Math.floor(parseFloat(stats.totalReferralEarnings))} SAT\n🏦 Total Payouts: ${Math.floor(parseFloat(stats.totalPayouts))} SAT\n\n🚀 Growth (Last 24h): +${stats.newUsersLast24h} new users`;
+          const statsMessage = `📊 Application Stats\n\n👥 Total Registered Users: ${stats.totalUsers.toLocaleString()}\n👤 Active Users Today: ${stats.activeUsersToday}\n🔗 Total Friends Invited: ${stats.totalInvites.toLocaleString()}\n\n💰 Total Earnings (All Users): ${Math.floor(parseFloat(stats.totalEarnings))} ANX\n💎 Total Referral Earnings: ${Math.floor(parseFloat(stats.totalReferralEarnings))} ANX\n🏦 Total Payouts: ${Math.floor(parseFloat(stats.totalPayouts))} ANX\n\n🚀 Growth (Last 24h): +${stats.newUsersLast24h} new users`;
           
           const refreshButton = {
             inline_keyboard: [[
@@ -1127,7 +1127,7 @@ Share your unique referral link and earn Hrum when your friends join:
             `├ Today     ∙ <code>${todayAds.toLocaleString()}</code>\n` +
             `└ Yesterday ∙ <code>${yesterdayAds.toLocaleString()}</code>\n\n` +
             
-            `💰 <b>Hrum DISTRIBUTED</b>\n` +
+            `💰 <b>ANX DISTRIBUTED</b>\n` +
             `┌ Total     ∙ <code>${totalHrum.toLocaleString()}</code>\n` +
             `├ Today     ∙ <code>${todayHrum.toLocaleString()}</code>\n` +
             `└ Yesterday ∙ <code>${yesterdayHrum.toLocaleString()}</code>\n\n` +
@@ -1276,8 +1276,8 @@ Share your unique referral link and earn Hrum when your friends join:
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${Math.floor(netAmount)} SAT
-🛂 Fee: ${Math.floor(feeAmount)} SAT (${feePercent}%)
+💸 Amount: ${Math.floor(netAmount)} ANX
+🛂 Fee: ${Math.floor(feeAmount)} ANX (${feePercent}%)
 📅 Date: ${createdAt}
 🤖 Bot: @${_wdBotName}`;
             
@@ -1494,8 +1494,8 @@ ${walletAddress}
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${Math.floor(netAmount)} SAT
-🛂 Fee: ${Math.floor(feeAmount)} SAT (${feePercent}%)
+💸 Amount: ${Math.floor(netAmount)} ANX
+🛂 Fee: ${Math.floor(feeAmount)} ANX (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @${_sucBotName}`;
             
@@ -2057,7 +2057,7 @@ ${walletAddress}
           `├ Today     ∙ <code>${todayAds.toLocaleString()}</code>\n` +
           `└ Yesterday ∙ <code>${yesterdayAds.toLocaleString()}</code>\n\n` +
           
-          `💰 <b>Hrum DISTRIBUTED</b>\n` +
+          `💰 <b>ANX DISTRIBUTED</b>\n` +
           `┌ Total     ∙ <code>${totalHrum.toLocaleString()}</code>\n` +
           `├ Today     ∙ <code>${todayHrum.toLocaleString()}</code>\n` +
           `└ Yesterday ∙ <code>${yesterdayHrum.toLocaleString()}</code>\n\n` +
@@ -2256,7 +2256,7 @@ Please contact support if you believe this is a mistake.`;
           const details = withdrawal.details as any;
           
           requestsList += `👤 User: ${userName} (ID: ${user?.telegram_id || 'N/A'})\n`;
-          requestsList += `💰 Amount: ${Math.floor(parseFloat(withdrawal.amount))} SAT\n`;
+          requestsList += `💰 Amount: ${Math.floor(parseFloat(withdrawal.amount))} ANX\n`;
           requestsList += `💳 Method: ${withdrawal.method}\n`;
           requestsList += `📋 Details: ${details?.paymentDetails || 'N/A'}\n`;
           requestsList += `⏰ Requested: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}\n`;
@@ -2269,7 +2269,7 @@ Please contact support if you believe this is a mistake.`;
           const userName = user ? (user.firstName || user.username || 'Unknown User') : 'Unknown User';
           const details = withdrawal.details as any;
           
-          const adminMessage = `💵 Withdraw request from user ${userName} (ID: ${user?.telegram_id || 'N/A'})\nAmount: ${Math.floor(parseFloat(withdrawal.amount))} SAT\nPayment System: ${withdrawal.method}\nPayment Details: ${details?.paymentDetails || 'N/A'}\nTime: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}`;
+          const adminMessage = `💵 Withdraw request from user ${userName} (ID: ${user?.telegram_id || 'N/A'})\nAmount: ${Math.floor(parseFloat(withdrawal.amount))} ANX\nPayment System: ${withdrawal.method}\nPayment Details: ${details?.paymentDetails || 'N/A'}\nTime: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}`;
           
           const adminKeyboard = {
             inline_keyboard: [
