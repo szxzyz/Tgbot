@@ -31,7 +31,7 @@ function fmt(n: number | string): string {
 }
 
 function fmtSat(n: number | string): string {
-  return fmt(n) + " SAT";
+  return fmt(n) + " ANX";
 }
 
 interface AdminStats {
@@ -209,11 +209,11 @@ export default function AdminPage() {
 function SummarySection({ stats, isLoading }: { stats: AdminStats | undefined; isLoading: boolean }) {
   const statCards = [
     { icon: UserCheck, label: "Active Users Today", value: fmt(stats?.dailyActiveUsers ?? 0), sub: `of ${fmt(stats?.totalUsers ?? 0)} total`, color: "bg-blue-600" },
-    { icon: Pickaxe, label: "Total Mining Sats", value: fmtSat(stats?.totalMiningSats ?? "0"), sub: "all time mined", color: "bg-orange-600" },
+    { icon: Pickaxe, label: "Total Mining ANX", value: fmtSat(stats?.totalMiningSats ?? "0"), sub: "all time mined", color: "bg-orange-600" },
     { icon: TrendingUp, label: "Mining Today", value: fmtSat(stats?.miningToday ?? "0"), sub: "today all sources", color: "bg-green-600" },
     { icon: Eye, label: "Total Ads Watched", value: fmt(stats?.totalAdsWatched ?? 0), sub: "all time", color: "bg-purple-600" },
     { icon: Eye, label: "Ads Watched Today", value: fmt(stats?.todayAdsWatched ?? 0), sub: "today", color: "bg-indigo-600" },
-    { icon: LogOut, label: "Total Sats Withdrawn", value: fmtSat(stats?.totalSatsWithdrawn ?? "0"), sub: `${fmt((stats as any)?.approvedWithdrawals ?? stats?.successfulWithdrawals ?? 0)} payouts done`, color: "bg-red-600" },
+    { icon: LogOut, label: "Total ANX Withdrawn", value: fmtSat(stats?.totalSatsWithdrawn ?? "0"), sub: `${fmt((stats as any)?.approvedWithdrawals ?? stats?.successfulWithdrawals ?? 0)} payouts done`, color: "bg-red-600" },
     { icon: DollarSign, label: "Withdrawn Today", value: fmtSat(stats?.todaySatsWithdrawn ?? "0"), sub: "approved today", color: "bg-rose-700" },
     { icon: GitBranch, label: "Users With Referrals", value: fmt(stats?.usersWithReferrals ?? 0), sub: "have invited friends", color: "bg-teal-600" },
   ];
@@ -249,7 +249,7 @@ function SummarySection({ stats, isLoading }: { stats: AdminStats | undefined; i
 
       {/* Charts */}
       <div className="space-y-4">
-        <ChartCard title="⛏ Mining Activity (SAT)" color="#f97316">
+        <ChartCard title="⛏ Mining Activity (ANX)" color="#f97316">
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
             <XAxis dataKey="period" tick={{ fontSize: 10, fill: "#666" }} />
@@ -279,7 +279,7 @@ function SummarySection({ stats, isLoading }: { stats: AdminStats | undefined; i
           </LineChart>
         </ChartCard>
 
-        <ChartCard title="💸 Daily Withdrawals (SAT)" color="#ef4444">
+        <ChartCard title="💸 Daily Withdrawals (ANX)" color="#ef4444">
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
             <XAxis dataKey="period" tick={{ fontSize: 10, fill: "#666" }} />
@@ -414,10 +414,10 @@ function UserSection({ usersData, isLoading }: { usersData: any; isLoading: bool
                     {parseFloat(u.miningRate || u.referralMiningBoost || "0").toFixed(2)}/h
                   </TableCell>
                   <TableCell className="text-[10px] font-semibold text-white py-2">
-                    {fmt(u.totalEarnings || u.balance || 0)} SAT
+                    {fmt(u.totalEarnings || u.balance || 0)} ANX
                   </TableCell>
                   <TableCell className="text-[10px] text-gray-300 py-2">
-                    {fmt(u.totalWithdrawn || 0)} SAT
+                    {fmt(u.totalWithdrawn || 0)} ANX
                   </TableCell>
                   <TableCell className="py-2">
                     {u.banned
@@ -515,9 +515,9 @@ function UserProfilePanel({ user: init, onClose }: { user: any; onClose: () => v
     ["Telegram ID", u.telegram_id || "—"],
     ["User ID", u.referralCode || u.id?.slice(0, 12) || "—"],
     ["Invite Count", u.friendsInvited ?? u.referralCount ?? 0],
-    ["Mining Speed", `${parseFloat(u.miningRate || u.referralMiningBoost || "0").toFixed(2)} SAT/h`],
-    ["Total Mined", `${fmt(u.totalEarnings || u.balance || 0)} SAT`],
-    ["Total Withdrawn", `${fmt(totalWithdrawn)} SAT`],
+    ["Mining Speed", `${parseFloat(u.miningRate || u.referralMiningBoost || "0").toFixed(2)} ANX/h`],
+    ["Total Mined", `${fmt(u.totalEarnings || u.balance || 0)} ANX`],
+    ["Total Withdrawn", `${fmt(totalWithdrawn)} ANX`],
     ["Last Active", u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "—"],
     ["Status", u.banned ? "Banned" : "Active"],
     ["Join Date", u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"],
@@ -692,8 +692,8 @@ function WithdrawSection({ payoutData, pendingData }: { payoutData: any; pending
                     <p className="text-[10px] text-gray-500">ID: {userId}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-white">{fmt(amount)} SAT</p>
-                    {fee > 0 && <p className="text-[10px] text-gray-500">Fee: {fmt(fee)} SAT</p>}
+                    <p className="text-sm font-bold text-white">{fmt(amount)} ANX</p>
+                    {fee > 0 && <p className="text-[10px] text-gray-500">Fee: {fmt(fee)} ANX</p>}
                   </div>
                 </div>
 
@@ -1139,7 +1139,7 @@ function SettingsSection() {
       {/* Affiliates */}
       {cat === "affiliates" && (
         <SettCard title="Referral & Affiliates" icon={<GitBranch className="w-3.5 h-3.5" />} color="text-teal-400">
-          <SettField label="Referral Mining Boost (SAT/h per invite)" hint="Extra SAT/hour added to inviter's mining rate per active referral. e.g. 0.02 = +0.02 SAT/h per friend">
+          <SettField label="Referral Mining Boost (ANX/h per invite)" hint="Extra ANX/hour added to inviter's mining rate per active referral. e.g. 0.02 = +0.02 ANX/h per friend">
             <Input type="number" step="0.001" value={s.referralBoostPerInvite} onChange={e => setS({ ...s, referralBoostPerInvite: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
           </SettField>
           <SettField label="Affiliate Commission (%)" hint="Commission for affiliates">
@@ -1158,10 +1158,10 @@ function SettingsSection() {
       {/* Withdrawals */}
       {cat === "withdrawals" && (
         <SettCard title="Withdrawal Settings" icon={<DollarSign className="w-3.5 h-3.5" />} color="text-green-400">
-          <SettField label="Minimum Withdrawal (SAT)" hint="Minimum SAT required to withdraw">
+          <SettField label="Minimum Withdrawal (ANX)" hint="Minimum ANX required to withdraw">
             <Input type="number" value={s.minimum_withdrawal_sat} onChange={e => setS({ ...s, minimum_withdrawal_sat: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
           </SettField>
-          <SettField label="Withdrawal Fee (SAT)" hint="Fee deducted per withdrawal (0 = free)">
+          <SettField label="Withdrawal Fee (ANX)" hint="Fee deducted per withdrawal (0 = free)">
             <Input type="number" value={s.withdrawal_fee_sat} onChange={e => setS({ ...s, withdrawal_fee_sat: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
           </SettField>
           <div className="flex items-center justify-between py-1">
@@ -1184,7 +1184,7 @@ function SettingsSection() {
         <SettCard title="Ad Settings" icon={<Eye className="w-3.5 h-3.5" />} color="text-purple-400">
           <div className="space-y-1 pb-1">
             <p className="text-[10px] font-semibold text-purple-400 uppercase tracking-wide">Section 1</p>
-            <SettField label="Mining Boost Per Ad (SAT/h)" hint="SAT/h added to mining rate per Section 1 ad watched">
+            <SettField label="Mining Boost Per Ad (ANX/h)" hint="ANX/h added to mining rate per Section 1 ad watched">
               <Input type="number" step="0.0001" value={s.ad_section1_reward} onChange={e => setS({ ...s, ad_section1_reward: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
             </SettField>
             <SettField label="Daily Limit" hint="Max Section 1 ads per user per day">
@@ -1193,7 +1193,7 @@ function SettingsSection() {
           </div>
           <div className="border-t border-white/5 pt-3 space-y-1">
             <p className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Section 2</p>
-            <SettField label="Mining Boost Per Ad (SAT/h)" hint="SAT/h added to mining rate per Section 2 ad watched">
+            <SettField label="Mining Boost Per Ad (ANX/h)" hint="ANX/h added to mining rate per Section 2 ad watched">
               <Input type="number" step="0.0001" value={s.ad_section2_reward} onChange={e => setS({ ...s, ad_section2_reward: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
             </SettField>
             <SettField label="Daily Limit" hint="Max Section 2 ads per user per day">

@@ -245,7 +245,7 @@ export default function Home() {
       const rewardAmount = parseFloat(data.rewardEarned || '0');
       if (rewardAmount > 0) {
         const earnedSAT = Math.round(rewardAmount);
-        showNotification(`You've claimed +${earnedSAT.toLocaleString()} SAT!`, "success");
+        showNotification(`You've claimed +${earnedSAT.toLocaleString()} ANX!`, "success");
       } else {
         showNotification("You've claimed your streak bonus!", "success");
       }
@@ -360,7 +360,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks/home/unified'] });
       const satReward = Number(data.reward ?? 0);
-      showNotification(`+${satReward.toLocaleString()} SAT earned!`, 'success');
+      showNotification(`+${satReward.toLocaleString()} ANX earned!`, 'success');
     },
     onError: (error: any) => {
       showNotification(error.message || 'Failed to claim reward', 'error');
@@ -534,7 +534,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
       
-      showNotification(`You received ${Math.round(data.rewardAXN || 1000).toLocaleString()} SAT on your balance`, "success");
+      showNotification(`You received ${Math.round(data.rewardAXN || 1000).toLocaleString()} ANX on your balance`, "success");
       setLoadingProvider(null);
     },
     onError: (error: any) => {
@@ -911,7 +911,7 @@ export default function Home() {
         extraAdsWatchedToday: data.extraAdsWatchedToday
       }));
       
-      showNotification(`You received ${data.rewardAXN} SAT for Extra Earn!`, "success");
+      showNotification(`You received ${data.rewardAXN} ANX for Extra Earn!`, "success");
     } catch (error: any) {
       console.error('Extra earn error:', error);
       showNotification(error.message || "Extra Earn ad failed", "error");
@@ -921,7 +921,7 @@ export default function Home() {
   const handleShareWithFriends = useCallback(() => {
     if (!referralLink) return;
     const tgWebApp = (window as any).Telegram?.WebApp;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on this Watch-to-Earn app and start stacking SAT together!")}`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on this Watch-to-Earn app and start earning ANX together!")}`;
     if (tgWebApp?.openTelegramLink) {
       tgWebApp.openTelegramLink(shareUrl);
     } else {
@@ -1085,13 +1085,13 @@ export default function Home() {
 
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total SAT Earned</span>
+              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total ANX Earned</span>
               <div className="flex items-center gap-1.5 leading-none">
-                <img src="/sat-icon.png" alt="SAT" className="w-4 h-4 rounded-full object-cover" />
+                <span className="text-[#F5C542] text-base font-black">◈</span>
                 <span className="text-white text-base font-black tabular-nums">
                   {Math.floor(parseFloat(user?.balance || "0")).toLocaleString()}
                 </span>
-                <span className="text-[#F5C542] text-[10px] font-bold">SAT</span>
+                <span className="text-[#F5C542] text-[10px] font-bold">ANX</span>
               </div>
             </div>
             <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
@@ -1112,14 +1112,14 @@ export default function Home() {
           <div className="w-full">
               <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Watch Ads & Earn Sats</span>
+                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Watch Ads & Earn ANX</span>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 bg-[#F5C542] rounded-full animate-pulse"></div>
                     <span className="text-[#F5C542] text-[10px] font-black uppercase tracking-widest">Live</span>
                   </div>
                 </div>
 
-                <p className="text-[#8E8E93] text-[11px] mb-4">Earn Sats by watching ads. Each ad watched instantly adds SAT to your balance.</p>
+                <p className="text-[#8E8E93] text-[11px] mb-4">Earn ANX by watching ads. Each ad watched instantly adds ANX to your balance.</p>
 
                 <div className="pt-3 border-t border-white/5">
                   <Button
@@ -1150,7 +1150,7 @@ export default function Home() {
                         Invite Friends and Earn
                       </p>
                       <p className="text-[#F5C542] font-bold text-xs mt-0.5">
-                        +0.02 SAT/h per friend
+                        +0.02 ANX/h per friend
                       </p>
                     </div>
                   </div>
@@ -1181,7 +1181,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Share with Friends</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.referralRewardAXN || '5'} SAT</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.referralRewardAXN || '5'} ANX</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
@@ -1216,7 +1216,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Daily Check-in</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} SAT</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} ANX</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
@@ -1257,7 +1257,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Check for Updates</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} SAT</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} ANX</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
