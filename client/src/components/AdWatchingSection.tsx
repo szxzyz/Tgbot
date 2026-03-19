@@ -47,7 +47,8 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
       return response.json();
     },
     onSuccess: async (data) => {
-      // Reward already shown optimistically for speed
+      const rewardAmount = data?.rewardPAD || appSettings?.rewardPerAd || 2;
+      showNotification(`+${rewardAmount} PAD earned!`, "success");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
@@ -101,10 +102,10 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
           resolve(true);
         } catch (error) {
           console.error('Adsgram ad error:', error);
-          resolve(true); // Resolve true even on error to prevent being stuck
+          resolve(false);
         }
       } else {
-        resolve(true); // Fallback to let user proceed
+        resolve(false);
       }
     });
   };
@@ -137,24 +138,10 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
         showNotification("Ad failed. Please try again.", "error");
         return;
       }
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // STEP 2: Show Adsgram ad
-      setCurrentAdStep('adsgram');
-      const adsgramSuccess = await showAdsgramAd();
-
-      if (!adsgramSuccess) {
-        showNotification("Please complete the ad to earn reward.", "error");
-        return;
-      }
       
-      // STEP 3: Grant reward after both complete successfully
+      // STEP 3: Grant reward after Monetag complete successfully
       setCurrentAdStep('verifying');
       
-      // Ensure the verification step is brief and follows through
-      await new Promise(resolve => setTimeout(resolve, 300));
-
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
         
@@ -166,21 +153,13 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
           adsWatchedToday: (old?.adsWatchedToday || 0) + 1
         }));
         
-        // Instant notification for better UX
-        showNotification(`+${rewardAmount} PAD earned!`, "success");
-        
         // Sync with backend - single reward call
         watchAdMutation.mutate('monetag');
       }
-    } catch (error) {
-      console.error('Ad watching error:', error);
-      showNotification("Error playing ads. Try again.", "error");
     } finally {
       // Always reset state on completion or error
       setCurrentAdStep('idle');
       setIsShowingAds(false);
-      // Ensure data is fresh
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
   };
 
