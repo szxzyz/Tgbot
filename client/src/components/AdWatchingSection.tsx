@@ -1,30 +1,26 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield, Zap, Loader2 } from "lucide-react";
+import { Play, Clock, Shield } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
   interface Window {
-    show_9368336: (type?: string | { type: string; inAppSettings: any }) => Promise<void>;
     show_10401872: (type?: string | { type: string; inAppSettings: any }) => Promise<void>;
     Adsgram: {
       init: (config: { blockId: string }) => {
         show: () => Promise<void>;
       };
     };
-    showGiga: (placement: string) => Promise<void>;
   }
 }
 
 interface AdWatchingSectionProps {
   user: any;
-  section?: 'section1' | 'section2';
 }
 
-export default function AdWatchingSection({ user, section = 'section1' }: AdWatchingSectionProps) {
+export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const queryClient = useQueryClient();
   const [isShowingAds, setIsShowingAds] = useState(false);
   const [currentAdStep, setCurrentAdStep] = useState<'idle' | 'monetag' | 'adsgram' | 'verifying'>('idle');
@@ -43,7 +39,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
 
   const watchAdMutation = useMutation({
     mutationFn: async (adType: string) => {
-      const response = await apiRequest("POST", "/api/ads/watch", { adType, section });
+      const response = await apiRequest("POST", "/api/ads/watch", { adType });
       if (!response.ok) {
         const error = await response.json();
         throw { status: response.status, ...error };
@@ -51,18 +47,20 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
       return response.json();
     },
     onSuccess: async (data) => {
-      const rewardAmount = data?.rewardSAT || data?.rewardBoost || (section === 'section1' ? 1000 : 500);
-      showNotification(`+${Math.round(rewardAmount).toLocaleString()} ANX earned!`, "success");
+      // Reward already shown optimistically for speed
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/withdrawal-eligibility"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/referrals/valid-count"] });
     },
     onError: (error: any) => {
       sessionRewardedRef.current = false;
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
       if (error.status === 429) {
-        showNotification(`Daily ad limit reached`, "error");
+        const limit = error.limit || appSettings?.dailyAdLimit || 50;
+        showNotification(`Daily ad limit reached (${limit} ads/day)`, "error");
       } else if (error.status === 401 || error.status === 403) {
         showNotification("Authentication error. Please refresh the page.", "error");
       } else if (error.message) {
@@ -75,14 +73,9 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
 
   const showMonetagAd = (): Promise<{ success: boolean; watchedFully: boolean; unavailable: boolean }> => {
     return new Promise((resolve) => {
-      const showFn = typeof window.show_9368336 === 'function'
-        ? window.show_9368336
-        : typeof window.show_10401872 === 'function'
-        ? window.show_10401872
-        : null;
-      if (showFn) {
+      if (typeof window.show_10401872 === 'function') {
         monetagStartTimeRef.current = Date.now();
-        showFn()
+        window.show_10401872()
           .then(() => {
             const watchDuration = Date.now() - monetagStartTimeRef.current;
             const watchedAtLeast3Seconds = watchDuration >= 3000;
@@ -104,29 +97,14 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     return new Promise(async (resolve) => {
       if (window.Adsgram) {
         try {
-          await window.Adsgram.init({ blockId: "25128" }).show();
+          await window.Adsgram.init({ blockId: "20372" }).show();
           resolve(true);
         } catch (error) {
           console.error('Adsgram ad error:', error);
-          resolve(false);
+          resolve(true); // Resolve true even on error to prevent being stuck
         }
       } else {
-        resolve(false);
-      }
-    });
-  };
-
-  const showGigaPubAd = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (typeof window.showGiga === 'function') {
-        window.showGiga("main")
-          .then(() => resolve(true))
-          .catch((e) => {
-            console.error('GigaPub ad error:', e);
-            resolve(false);
-          });
-      } else {
-        resolve(false);
+        resolve(true); // Fallback to let user proceed
       }
     });
   };
@@ -140,25 +118,11 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     try {
       // STEP 1: Show Monetag ad - User must watch at least 3 seconds
       setCurrentAdStep('monetag');
-      let monetagResult;
-      try {
-        monetagResult = await showMonetagAd();
-      } catch (e) {
-        console.error('Monetag fatal error:', e);
-        monetagResult = { success: false, watchedFully: false, unavailable: false };
-      }
+      const monetagResult = await showMonetagAd();
       
-      // Reset state immediately after ad closes to prevent black screen if something hangs
-      if (!monetagResult.success && !monetagResult.watchedFully) {
-        setCurrentAdStep('idle');
-        setIsShowingAds(false);
-      }
-
       // Handle Monetag unavailable
       if (monetagResult.unavailable) {
         showNotification("Ads not available. Please try again later.", "error");
-        setIsShowingAds(false);
-        setCurrentAdStep('idle');
         return;
       }
       
@@ -173,100 +137,100 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
         showNotification("Ad failed. Please try again.", "error");
         return;
       }
-      
-      // STEP 2: Show second ad based on section
-      setCurrentAdStep('adsgram');
-      try {
-        if (section === 'section1') {
-          await showAdsgramAd();
-        } else {
-          await showGigaPubAd();
-        }
-      } catch (e) {
-        console.error('Second ad error:', e);
-      }
 
-      // STEP 3: Grant reward after both ads complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // STEP 2: Show Adsgram ad
+      setCurrentAdStep('adsgram');
+      const adsgramSuccess = await showAdsgramAd();
+
+      if (!adsgramSuccess) {
+        showNotification("Please complete the ad to earn reward.", "error");
+        return;
+      }
+      
+      // STEP 3: Grant reward after both complete successfully
       setCurrentAdStep('verifying');
       
+      // Ensure the verification step is brief and follows through
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
         
         // Optimistic UI update - only ONE increment to progress
         const rewardAmount = appSettings?.rewardPerAd || 2;
-        queryClient.setQueryData(["/api/auth/user"], (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            tonBalance: String(parseFloat(old?.tonBalance || '0') + (appSettings?.affiliateCommission || 0.1) * rewardAmount / 100),
-            balance: String(parseFloat(old?.balance || '0') + rewardAmount),
-            adsWatchedToday: (old?.adsWatchedToday || 0) + 1
-          };
-        });
+        queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
+          ...old,
+          balance: String(parseFloat(old?.balance || '0') + rewardAmount),
+          adsWatchedToday: (old?.adsWatchedToday || 0) + 1
+        }));
+        
+        // Instant notification for better UX
+        showNotification(`+${rewardAmount} PAD earned!`, "success");
         
         // Sync with backend - single reward call
-        try {
-          await watchAdMutation.mutateAsync('monetag');
-        } catch (e) {
-          console.error('Reward mutation failed:', e);
-        }
+        watchAdMutation.mutate('monetag');
       }
     } catch (error) {
-      console.error('handleStartEarning global error:', error);
-      showNotification("An unexpected error occurred. Please try again.", "error");
+      console.error('Ad watching error:', error);
+      showNotification("Error playing ads. Try again.", "error");
     } finally {
       // Always reset state on completion or error
       setCurrentAdStep('idle');
       setIsShowingAds(false);
+      // Ensure data is fresh
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
   };
 
-  const adsWatchedToday = section === 'section1' ? (user?.adSection1Count || 0) : (user?.adSection2Count || 0);
-  const dailyLimit = section === 'section1' 
-    ? (parseInt(appSettings?.ad_section1_limit || '250')) 
-    : (parseInt(appSettings?.ad_section2_limit || '250'));
-
-  const sectionReward = section === 'section1'
-    ? (appSettings?.ad_section1_reward || '0.25')
-    : (appSettings?.ad_section2_reward || '0.25');
+  const adsWatchedToday = user?.adsWatchedToday || 0;
+  const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="bg-[#141414] border border-white/5 rounded-2xl p-3 flex flex-col gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
-      <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/3 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-      <div className="flex items-center gap-2.5 relative z-10">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#0d0d0d] border border-white/5 overflow-hidden shadow-inner">
-          <img
-            src="/images/ads_icon.png"
-            alt="Ads"
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-          />
+    <Card className="rounded-2xl minimal-card mb-3">
+      <CardContent className="p-4">
+        <div className="text-center mb-3">
+          <h2 className="text-base font-bold text-white mb-1">Viewing ads</h2>
+          <p className="text-[#AAAAAA] text-xs">Get PAD for watching commercials</p>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-white text-[12px] font-black tabular-nums leading-none">{parseFloat(sectionReward).toLocaleString()} ANX</span>
-            <span className="text-[#8E8E93] text-[9px] font-bold uppercase tracking-wider leading-none">AD ({adsWatchedToday}/{dailyLimit})</span>
-          </div>
+        
+        <div className="flex justify-center mb-3">
+          <button
+            onClick={handleStartEarning}
+            disabled={isShowingAds || adsWatchedToday >= dailyLimit}
+            className="btn-primary px-6 py-3 flex items-center gap-2 min-w-[160px] justify-center text-base disabled:opacity-50"
+            data-testid="button-watch-ad"
+          >
+            {isShowingAds ? (
+              <>
+                {currentAdStep === 'verifying' ? (
+                  <Shield size={16} className="animate-pulse text-green-400" />
+                ) : (
+                  <Clock size={16} className="animate-spin" />
+                )}
+                <span className="text-sm font-semibold">
+                  {currentAdStep === 'monetag' ? 'Monetag...' : 
+                   currentAdStep === 'adsgram' ? 'AdGram...' :
+                   currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
+                </span>
+              </>
+            ) : (
+              <>
+                <Play size={16} className="group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-semibold">Start Earning</span>
+              </>
+            )}
+          </button>
         </div>
-      </div>
-
-      <Button
-        onClick={handleStartEarning}
-        disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-        className="relative z-10 w-full rounded-xl h-9 font-black text-[11px] uppercase tracking-widest bg-[#F5C542] hover:bg-yellow-400 text-black border-none transition-all active:scale-95 shadow-[0_0_20px_rgba(245,197,66,0.15)]"
-      >
-        {isShowingAds ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>{currentAdStep === 'monetag' || currentAdStep === 'adsgram' ? 'Wait' : 'Check'}</span>
-          </div>
-        ) : (
-          <span className="flex items-center gap-1.5">
-            <Play className="w-3 h-3 fill-current" />
-            Claim
-          </span>
-        )}
-      </Button>
-    </div>
+        
+        {/* Watched counter - Always visible */}
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">
+            Watched: {adsWatchedToday}/{dailyLimit}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
