@@ -15,14 +15,14 @@ interface MenuPopupProps {
 type View = "main" | "transactions" | "legal" | "contest";
 
 const VIEW_RANGES = [
-  { label: "100 – 999 Views", value: "100-999", reward: "100 sats" },
-  { label: "1K – 4.9K Views", value: "1k-4.9k", reward: "250 sats" },
-  { label: "5K – 9.9K Views", value: "5k-9.9k", reward: "500 sats" },
-  { label: "10K – 49.9K Views", value: "10k-49.9k", reward: "1K sats" },
-  { label: "50K – 99.9K Views", value: "50k-99.9k", reward: "5K sats" },
-  { label: "100K – 499.9K Views", value: "100k-499.9k", reward: "10K sats" },
-  { label: "500K – 999.9K Views", value: "500k-999.9k", reward: "25K sats" },
-  { label: "1M+ Views", value: "1m+", reward: "100K sats" },
+  { label: "100 – 999 Views", value: "100-999", reward: "100 ANX" },
+  { label: "1K – 4.9K Views", value: "1k-4.9k", reward: "250 ANX" },
+  { label: "5K – 9.9K Views", value: "5k-9.9k", reward: "500 ANX" },
+  { label: "10K – 49.9K Views", value: "10k-49.9k", reward: "1K ANX" },
+  { label: "50K – 99.9K Views", value: "50k-99.9k", reward: "5K ANX" },
+  { label: "100K – 499.9K Views", value: "100k-499.9k", reward: "10K ANX" },
+  { label: "500K – 999.9K Views", value: "500k-999.9k", reward: "25K ANX" },
+  { label: "1M+ Views", value: "1m+", reward: "100K ANX" },
 ];
 
 export default function MenuPopup({ onClose }: MenuPopupProps) {
@@ -242,7 +242,7 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-white text-xs font-bold">{parseFloat(w.amount || "0").toLocaleString()} SAT</p>
+                        <p className="text-white text-xs font-bold">{parseFloat(w.amount || "0").toLocaleString()} ANX</p>
                         <p className={`text-[10px] font-semibold capitalize ${getStatusColor(w.status)}`}>{w.status}</p>
                       </div>
                     </div>
@@ -257,7 +257,7 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
             <div className="px-5 py-4 space-y-3 text-xs text-white/50 leading-relaxed">
               <div className="bg-white/5 rounded-2xl p-4">
                 <p className="text-white/70 font-bold mb-2">Terms of Use</p>
-                <p>By using this app, you agree to our terms. Rewards are in SAT (satoshis) and are subject to availability. Rewards may change at any time without prior notice.</p>
+                <p>By using this app, you agree to our terms. Rewards are in ANX and are subject to availability. Rewards may change at any time without prior notice.</p>
               </div>
               <div className="bg-white/5 rounded-2xl p-4">
                 <p className="text-white/70 font-bold mb-2">Privacy Policy</p>
@@ -281,8 +281,8 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
                     <Trophy className="w-5 h-5 text-[#F5C542]" />
                   </div>
                   <p className="text-white font-black text-sm leading-snug">
-                    Tell others about Lightning Sats, and get up to{" "}
-                    <span className="text-[#F5C542]">10,000,000 sats</span> for each video.
+                    Tell others about ANX, and get up to{" "}
+                    <span className="text-[#F5C542]">10,000,000 ANX</span> for each video.
                   </p>
                 </div>
               </div>
@@ -296,7 +296,7 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
                     <span className="w-5 h-5 rounded-full bg-[#F5C542]/20 flex items-center justify-center text-[#F5C542] font-black text-[10px] flex-shrink-0">1</span>
                     <p className="text-white font-bold text-xs">Create Content</p>
                   </div>
-                  <p className="text-white/50 text-[11px] leading-relaxed pl-7">Make a fun video about Lightning Sats and post it on:</p>
+                  <p className="text-white/50 text-[11px] leading-relaxed pl-7">Make a fun video about ANX and post it on:</p>
                   <div className="flex gap-1.5 flex-wrap pl-7">
                     <div className="flex items-center gap-1 bg-red-500/10 border border-red-500/20 rounded-lg px-2 py-1">
                       <Youtube className="w-3 h-3 text-red-400" />
@@ -344,7 +344,7 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
                       <p className="text-white font-bold text-xs">Earn Rewards</p>
                       <p className="text-white/50 text-[11px] leading-relaxed mt-1">
                         The more views your video gets, the bigger the reward. Up to{" "}
-                        <span className="text-[#F5C542] font-bold">10,000,000 Sats</span> per video.
+                        <span className="text-[#F5C542] font-bold">10,000,000 ANX</span> per video.
                       </p>
                     </div>
                   </div>

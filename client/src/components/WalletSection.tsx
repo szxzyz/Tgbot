@@ -14,16 +14,16 @@ interface WalletSectionProps {
 }
 
 export default function WalletSection({ axnBalance, tonBalance, uid, isAdmin, onAdminClick, onWithdraw }: WalletSectionProps) {
-  const satBalance = Math.floor(axnBalance);
+  const anxBalance = Math.floor(axnBalance);
 
   return (
     <Card className="minimal-card mb-3">
       <CardContent className="pt-3 pb-3">
         <div className="flex items-center justify-between gap-3">
-          {/* SAT Balance */}
+          {/* ANX Balance */}
           <div className="flex items-center gap-2">
-            <span className="text-[#F5C542] text-xl font-bold">₿</span>
-            <div className="text-white font-bold text-xl">{satBalance.toLocaleString()} SAT</div>
+            <span className="text-[#F5C542] text-xl font-bold">◈</span>
+            <div className="text-white font-bold text-xl">{anxBalance.toLocaleString()} ANX</div>
           </div>
 
           {/* Withdraw Button */}

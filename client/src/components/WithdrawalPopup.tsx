@@ -29,7 +29,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     staleTime: 0,
   });
 
-  const satBalance = Math.floor(parseFloat(user?.balance || "0"));
+  const anxBalance = Math.floor(parseFloat(user?.balance || "0"));
   const minWithdraw = appSettings?.minimum_withdrawal_sat ? parseFloat(appSettings.minimum_withdrawal_sat) : 20;
   const networkFee = appSettings?.withdrawal_fee_sat ? parseFloat(appSettings.withdrawal_fee_sat) : 10;
 
@@ -38,7 +38,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       const res = await apiRequest("POST", "/api/withdrawals", {
         address: withdrawAddress,
         amount: parseFloat(withdrawAmount).toString(),
-        method: "SAT"
+        method: "ANX"
       });
       return res.json();
     },
@@ -72,11 +72,11 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
   const handleWithdrawClick = () => {
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount < minWithdraw) {
-      showNotification(`Minimum withdrawal amount is ${minWithdraw} SAT`, "error");
+      showNotification(`Minimum withdrawal amount is ${minWithdraw} ANX`, "error");
       return;
     }
-    if (amount > satBalance) {
-      showNotification(`Insufficient balance. Available: ${satBalance} SAT`, "error");
+    if (amount > anxBalance) {
+      showNotification(`Insufficient balance. Available: ${anxBalance} ANX`, "error");
       return;
     }
     if (!withdrawAddress.trim()) {
@@ -93,7 +93,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
   const toReceive = withdrawAmount ? Math.max(0, parseFloat(withdrawAmount) - networkFee).toFixed(0) : "0";
 
   const handleMaxClick = () => {
-    setWithdrawAmount(satBalance.toString());
+    setWithdrawAmount(anxBalance.toString());
   };
 
   return (
@@ -125,7 +125,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
             <div className="flex items-center px-5 py-3 border-b border-white/5">
               <div className="flex items-center gap-2">
                 <Download className="w-5 h-5 text-yellow-400" />
-                <h2 className="text-white font-bold text-base">SAT Withdrawal</h2>
+                <h2 className="text-white font-bold text-base">ANX Withdrawal</h2>
               </div>
             </div>
 
@@ -133,9 +133,8 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
               <div className="bg-white/5 rounded-xl px-4 py-3 flex justify-between items-center">
                 <span className="text-white/50 text-xs font-semibold">Available Balance</span>
                 <div className="flex items-center gap-1.5">
-                  <img src="/sat-icon.png" alt="SAT" className="w-4 h-4 rounded-full object-cover" />
                   <span className="text-yellow-400 text-sm font-black tabular-nums">
-                    {satBalance.toLocaleString()} SAT
+                    {anxBalance.toLocaleString()} ANX
                   </span>
                 </div>
               </div>
@@ -170,7 +169,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
               <div className="space-y-1.5">
                 <Label className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                  Amount (SAT)
+                  Amount (ANX)
                 </Label>
                 <div className="relative">
                   <Input
@@ -192,21 +191,20 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
               <div className="bg-white/5 rounded-xl p-4 space-y-2.5">
                 <div className="flex justify-between items-center">
                   <span className="text-white/50 text-xs font-semibold">Withdraw Fee</span>
-                  <span className="text-white text-xs font-bold">{networkFee} SAT</span>
+                  <span className="text-white text-xs font-bold">{networkFee} ANX</span>
                 </div>
                 <div className="h-[1px] bg-white/5" />
                 <div className="flex justify-between items-center">
                   <span className="text-white/50 text-xs font-semibold">Min. Withdrawal</span>
-                  <span className="text-white text-xs font-bold">{minWithdraw} SAT</span>
+                  <span className="text-white text-xs font-bold">{minWithdraw} ANX</span>
                 </div>
                 <div className="h-[1px] bg-white/5" />
                 <div className="flex justify-between items-center">
                   <span className="text-white/50 text-xs font-semibold">You Receive</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-white text-sm font-black tabular-nums">
-                      {parseInt(toReceive).toLocaleString()} SAT
+                      {parseInt(toReceive).toLocaleString()} ANX
                     </span>
-                    <img src="/sat-icon.png" alt="SAT" className="w-4 h-4 rounded-full object-cover" />
                   </div>
                 </div>
               </div>
@@ -219,7 +217,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
                 {withdrawMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  "Withdraw SAT"
+                  "Withdraw ANX"
                 )}
               </Button>
 

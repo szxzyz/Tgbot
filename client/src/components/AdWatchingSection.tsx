@@ -52,7 +52,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     },
     onSuccess: async (data) => {
       const rewardAmount = data?.rewardSAT || data?.rewardBoost || (section === 'section1' ? 1000 : 500);
-      showNotification(`+${Math.round(rewardAmount).toLocaleString()} SAT earned!`, "success");
+      showNotification(`+${Math.round(rewardAmount).toLocaleString()} ANX earned!`, "success");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
@@ -244,7 +244,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col gap-0.5">
-            <span className="text-white text-[12px] font-black tabular-nums leading-none">{parseFloat(sectionReward).toLocaleString()} SAT</span>
+            <span className="text-white text-[12px] font-black tabular-nums leading-none">{parseFloat(sectionReward).toLocaleString()} ANX</span>
             <span className="text-[#8E8E93] text-[9px] font-bold uppercase tracking-wider leading-none">AD ({adsWatchedToday}/{dailyLimit})</span>
           </div>
         </div>

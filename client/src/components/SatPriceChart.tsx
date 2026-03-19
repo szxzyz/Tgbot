@@ -131,9 +131,9 @@ export function SatPriceChart() {
             <img src="/btc-icon.jpg" alt="Bitcoin" className="w-full h-full object-cover" />
           </div>
           <div>
-            <p className="text-white text-xs font-black leading-none">Bitcoin · SAT</p>
+            <p className="text-white text-xs font-black leading-none">Bitcoin · ANX</p>
             <p className="text-[#8E8E93] text-[9px] font-semibold mt-0.5 leading-none">
-              Satoshi / USD · 24h
+              ANX / USD · 24h
             </p>
           </div>
         </div>
@@ -175,7 +175,7 @@ export function SatPriceChart() {
                 <span className="text-white text-[22px] font-black tabular-nums leading-none">
                   ${satPrice !== null ? formatSat(satPrice) : "—"}
                 </span>
-                <span className="text-[#8E8E93] text-[9px] font-semibold pb-0.5">/ SAT</span>
+                <span className="text-[#8E8E93] text-[9px] font-semibold pb-0.5">/ ANX</span>
               </div>
               {btcPrice !== null && (
                 <p className="text-[#8E8E93] text-[9px] font-semibold mt-0.5">

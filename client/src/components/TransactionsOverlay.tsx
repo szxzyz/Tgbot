@@ -72,15 +72,15 @@ export default function TransactionsOverlay({ open, onOpenChange }: Transactions
 
   const getAmountDisplay = (item: any) => {
     if (item.activityType === 'sent') {
-      return { prefix: '-', color: 'text-orange-400', amount: `${Math.floor(parseFloat(item.amount)).toLocaleString()} SAT` };
+      return { prefix: '-', color: 'text-orange-400', amount: `${Math.floor(parseFloat(item.amount)).toLocaleString()} ANX` };
     }
     if (item.activityType === 'received') {
-      return { prefix: '+', color: 'text-emerald-400', amount: `${Math.floor(parseFloat(item.amount)).toLocaleString()} SAT` };
+      return { prefix: '+', color: 'text-emerald-400', amount: `${Math.floor(parseFloat(item.amount)).toLocaleString()} ANX` };
     }
     if (item.activityType === 'deposit') {
-      return { prefix: '+', color: 'text-green-400', amount: `${parseFloat(item.amount).toFixed(4)} TON` };
+      return { prefix: '+', color: 'text-green-400', amount: `${parseFloat(item.amount).toFixed(4)} ANX` };
     }
-    return { prefix: '-', color: 'text-blue-400', amount: `${parseFloat(item.amount).toFixed(4)} TON` };
+    return { prefix: '-', color: 'text-blue-400', amount: `${parseFloat(item.amount).toFixed(4)} ANX` };
   };
 
   return (
