@@ -7,34 +7,34 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format currency values - displays Hrum amount in pure numeric format
- * Hrum is always an integer value
- * Examples: 1000 -> "1,000 Hrum", 500000 -> "500,000 Hrum"
+ * Format currency values - displays ANX amount in pure numeric format
+ * ANX is always an integer value
+ * Examples: 1000 -> "1,000 ANX", 500000 -> "500,000 ANX"
  */
 export function formatCurrency(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 Hrum' : '0';
+    return includeSymbol ? '0 ANX' : '0';
   }
   
   const hrumValue = Math.round(numValue);
-  const symbol = includeSymbol ? ' Hrum' : '';
+  const symbol = includeSymbol ? ' ANX' : '';
   return `${hrumValue.toLocaleString()}${symbol}`;
 }
 
 /**
- * Format large Hrum numbers with compact notation (K, M, B, T)
+ * Format large ANX numbers with compact notation (K, M, B, T)
  */
 export function formatLargeHrum(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 Hrum' : '0';
+    return includeSymbol ? '0 ANX' : '0';
   }
   
   const absValue = Math.abs(numValue);
-  const symbol = includeSymbol ? ' Hrum' : '';
+  const symbol = includeSymbol ? ' ANX' : '';
   const sign = numValue < 0 ? '-' : '';
   
   if (absValue >= 1000000000000) return `${sign}${(absValue / 1000000000000).toFixed(1)}T${symbol}`;
@@ -46,8 +46,7 @@ export function formatLargeHrum(value: string | number, includeSymbol: boolean =
 }
 
 /**
- * Convert Hrum to TON
- * 10,000 Hrum = 1 TON
+ * Convert ANX amount
  */
 export function formatHrumto$(hrumAmount: number | string): string {
   const ton = hrumTo$(hrumAmount);
@@ -55,15 +54,15 @@ export function formatHrumto$(hrumAmount: number | string): string {
 }
 
 /**
- * Format $values
+ * Format values
  */
 export function format$(value: string | number | undefined | null, includeSymbol: boolean = true): string {
-  if (value === undefined || value === null) return includeSymbol ? '0 TON' : '0';
+  if (value === undefined || value === null) return includeSymbol ? '0 ANX' : '0';
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
-  if (isNaN(numValue) || !isFinite(numValue)) return includeSymbol ? '0 TON' : '0';
+  if (isNaN(numValue) || !isFinite(numValue)) return includeSymbol ? '0 ANX' : '0';
   
-  const symbol = includeSymbol ? ' TON' : '';
+  const symbol = includeSymbol ? ' ANX' : '';
   
   let result;
   const parts = numValue.toString().split('.');
