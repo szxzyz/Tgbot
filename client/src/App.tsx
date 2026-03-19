@@ -24,7 +24,6 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
-const VideoPlayer = lazy(() => import("@/pages/VideoPlayer"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PageLoader = memo(function PageLoader() {
@@ -44,8 +43,8 @@ function LoadingFallback() {
           </div>
         </div>
         <div className="text-center">
-          <h1 className="text-white font-black text-lg tracking-widest uppercase">SatsTV</h1>
-          <p className="text-[#8E8E93] text-[10px] font-semibold uppercase tracking-widest mt-1">Watch · Earn · Unlock</p>
+          <h1 className="text-white font-black text-lg tracking-widest uppercase">Lightning Sats</h1>
+          <p className="text-[#8E8E93] text-[10px] font-semibold uppercase tracking-widest mt-1">Mine · Earn · Withdraw</p>
         </div>
         <div className="flex items-center gap-1.5 mt-2">
           <div className="w-1.5 h-1.5 bg-[#F5C542] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
@@ -62,7 +61,6 @@ function Router() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/video/:id" component={VideoPlayer} />
         <Route path="/task/create" component={CreateTask} />
         <Route path="/create-task" component={CreateTask} />
         <Route path="/profile" component={Profile} />
@@ -399,10 +397,10 @@ function App() {
           {/* App name */}
           <div className="text-center">
             <h1 className="text-white font-black text-lg tracking-widest uppercase">
-              SatsTV
+              Lightning Sats
             </h1>
             <p className="text-[#8E8E93] text-[10px] font-semibold uppercase tracking-widest mt-1">
-              Watch · Earn · Unlock
+              Mine · Earn · Withdraw
             </p>
           </div>
 
