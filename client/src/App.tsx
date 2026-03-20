@@ -19,7 +19,7 @@ declare global {
 }
 
 const Home = lazy(() => import("@/pages/Home"));
-const Landing = lazy(() => import("@/pages/Landing"));
+
 const Admin = lazy(() => import("@/pages/Admin"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
