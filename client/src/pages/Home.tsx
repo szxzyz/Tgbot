@@ -1042,6 +1042,16 @@ export default function Home() {
   return (
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-24">
+        {/* Top Title */}
+        <div className="text-center mb-4">
+          <h1 className="text-white text-xl font-black tracking-tight leading-tight">
+            Watch <span className="text-[#F5C542]">ADS</span> &amp; Earn <span className="text-[#F5C542]">ANX</span>
+          </h1>
+          <p className="text-[#8E8E93] text-[11px] mt-1 leading-relaxed">
+            Earn ANX by watching ads. Each ad watched instantly adds ANX to your balance.
+          </p>
+        </div>
+
         {/* Balance & Content Section */}
         <div className="mb-4 relative">
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
@@ -1070,21 +1080,7 @@ export default function Home() {
 
           <SatPriceChart />
 
-          <div className="w-full">
-              <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Watch Ads & Earn ANX</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-[#F5C542] rounded-full animate-pulse"></div>
-                    <span className="text-[#F5C542] text-[10px] font-black uppercase tracking-widest">Live</span>
-                  </div>
-                </div>
-
-                <p className="text-[#8E8E93] text-[11px] mb-4">Earn ANX by watching ads. Each ad watched instantly adds ANX to your balance.</p>
-              </div>
-
-              <AdWatchingSection user={user as User} />
-          </div>
+          <AdWatchingSection user={user as User} />
         </div>
 
       </main>
