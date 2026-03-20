@@ -14,16 +14,9 @@ interface PricePoint {
   p: number;
 }
 
-const SAT = 100_000_000;
-
-const formatSat = (usd: number) => {
-  if (!usd) return "0.000000";
-  if (usd < 0.00001) return usd.toFixed(8);
-  return usd.toFixed(6);
-};
-
-const formatBTC = (usd: number) => {
-  return `$${usd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+const formatTON = (usd: number) => {
+  if (!usd) return "0.00";
+  return usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 };
 
 const formatTime = (ts: number) => {
@@ -37,7 +30,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     const ts: number = payload[0].payload?.t;
     return (
       <div className="bg-[#1e1e1e] border border-white/10 rounded-xl px-3 py-2 text-[10px] shadow-2xl">
-        <p className="text-white font-black">${formatSat(val)}</p>
+        <p className="text-white font-black">${formatTON(val)}</p>
         {ts && <p className="text-[#8E8E93] mt-0.5">{formatTime(ts)}</p>}
       </div>
     );
@@ -47,7 +40,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function SatPriceChart() {
   const [history, setHistory] = useState<PricePoint[]>([]);
-  const [btcPrice, setBtcPrice] = useState<number | null>(null);
+  const [tonPrice, setTonPrice] = useState<number | null>(null);
   const [change24h, setChange24h] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -55,23 +48,22 @@ export function SatPriceChart() {
 
   const load24hData = async () => {
     try {
-      // Binance: 24 hourly candles
       const res = await fetch(
-        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=24"
+        "https://api.binance.com/api/v3/klines?symbol=TONUSDT&interval=1h&limit=24"
       );
       if (!res.ok) throw new Error("Binance klines failed");
       const klines: [number, string, string, string, string][] = await res.json();
 
       const points: PricePoint[] = klines.map((k) => ({
         t: k[0],
-        p: parseFloat(k[4]) / SAT, // close price in SAT/USD
+        p: parseFloat(k[4]),
       }));
 
       if (points.length >= 2) {
         const first = points[0].p;
         const last = points[points.length - 1].p;
         setChange24h(((last - first) / first) * 100);
-        setBtcPrice(last * SAT);
+        setTonPrice(last);
       }
 
       setHistory(points);
@@ -86,18 +78,18 @@ export function SatPriceChart() {
   const refreshPrice = async () => {
     try {
       const res = await fetch(
-        "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        "https://api.binance.com/api/v3/ticker/24hr?symbol=TONUSDT"
       );
       if (!res.ok) return;
       const data = await res.json();
       const price = parseFloat(data.lastPrice);
       const chgPct = parseFloat(data.priceChangePercent);
       if (!price) return;
-      setBtcPrice(price);
+      setTonPrice(price);
       setChange24h(chgPct);
       setHistory((prev) => {
         if (!prev.length) return prev;
-        const updated = [...prev, { t: Date.now(), p: price / SAT }];
+        const updated = [...prev, { t: Date.now(), p: price }];
         return updated.slice(-50);
       });
     } catch {
@@ -115,25 +107,24 @@ export function SatPriceChart() {
 
   const isUp = change24h >= 0;
   const accentColor = isUp ? "#22c55e" : "#ef4444";
-  const satPrice = btcPrice !== null ? btcPrice / SAT : null;
 
   const prices = history.map((h) => h.p);
   const minP = prices.length ? Math.min(...prices) : 0;
   const maxP = prices.length ? Math.max(...prices) : 0;
-  const pad = (maxP - minP) * 0.2 || 0.0000001;
+  const pad = (maxP - minP) * 0.2 || 0.01;
 
   return (
     <div className="bg-[#141414] rounded-2xl border border-white/5 mb-4 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
-            <img src="/btc-icon.jpg" alt="Bitcoin" className="w-full h-full object-cover" />
+          <div className="w-7 h-7 rounded-full bg-[#0088CC]/20 border border-[#0088CC]/30 flex items-center justify-center text-[14px]">
+            💎
           </div>
           <div>
-            <p className="text-white text-xs font-black leading-none">Bitcoin · ANX</p>
+            <p className="text-white text-xs font-black leading-none">TON · USD</p>
             <p className="text-[#8E8E93] text-[9px] font-semibold mt-0.5 leading-none">
-              ANX / USD · 24h
+              TON/USDT · 24h · Live
             </p>
           </div>
         </div>
@@ -173,15 +164,13 @@ export function SatPriceChart() {
             <>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-white text-[22px] font-black tabular-nums leading-none">
-                  ${satPrice !== null ? formatSat(satPrice) : "—"}
+                  ${tonPrice !== null ? formatTON(tonPrice) : "—"}
                 </span>
-                <span className="text-[#8E8E93] text-[9px] font-semibold pb-0.5">/ ANX</span>
+                <span className="text-[#8E8E93] text-[9px] font-semibold pb-0.5">/ TON</span>
               </div>
-              {btcPrice !== null && (
-                <p className="text-[#8E8E93] text-[9px] font-semibold mt-0.5">
-                  BTC: {formatBTC(btcPrice)}
-                </p>
-              )}
+              <p className="text-[#8E8E93] text-[9px] font-semibold mt-0.5">
+                1,000,000 ANX = 1 TON
+              </p>
             </>
           )}
         </div>
@@ -209,7 +198,7 @@ export function SatPriceChart() {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={history} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="satGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="tonGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={accentColor} stopOpacity={0.35} />
                   <stop offset="100%" stopColor={accentColor} stopOpacity={0} />
                 </linearGradient>
@@ -229,7 +218,7 @@ export function SatPriceChart() {
                 dataKey="p"
                 stroke={accentColor}
                 strokeWidth={2}
-                fill="url(#satGradient)"
+                fill="url(#tonGradient)"
                 dot={false}
                 activeDot={{ r: 4, fill: accentColor, stroke: "#141414", strokeWidth: 2 }}
                 isAnimationActive={false}

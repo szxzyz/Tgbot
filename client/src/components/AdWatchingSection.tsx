@@ -1,18 +1,12 @@
 import { useState, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield } from "lucide-react";
+import { Play, Clock, Shield, Tv } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
   interface Window {
-    show_10401872: (type?: string | { type: string; inAppSettings: any }) => Promise<void>;
-    Adsgram: {
-      init: (config: { blockId: string }) => {
-        show: () => Promise<void>;
-      };
-    };
+    show_9368336: (type?: string | { type: string; inAppSettings: any }) => Promise<void>;
   }
 }
 
@@ -46,8 +40,7 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
       }
       return response.json();
     },
-    onSuccess: async (data) => {
-      // Reward already shown optimistically for speed
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
@@ -73,9 +66,9 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
 
   const showMonetagAd = (): Promise<{ success: boolean; watchedFully: boolean; unavailable: boolean }> => {
     return new Promise((resolve) => {
-      if (typeof window.show_10401872 === 'function') {
+      if (typeof window.show_9368336 === 'function') {
         monetagStartTimeRef.current = Date.now();
-        window.show_10401872()
+        window.show_9368336()
           .then(() => {
             const watchDuration = Date.now() - monetagStartTimeRef.current;
             const watchedAtLeast3Seconds = watchDuration >= 3000;
@@ -93,22 +86,6 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
     });
   };
 
-  const showAdsgramAd = (): Promise<boolean> => {
-    return new Promise(async (resolve) => {
-      if (window.Adsgram) {
-        try {
-          await window.Adsgram.init({ blockId: "20372" }).show();
-          resolve(true);
-        } catch (error) {
-          console.error('Adsgram ad error:', error);
-          resolve(true); // Resolve true even on error to prevent being stuck
-        }
-      } else {
-        resolve(true); // Fallback to let user proceed
-      }
-    });
-  };
-
   const handleStartEarning = async () => {
     if (isShowingAds) return;
     
@@ -116,49 +93,30 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
     sessionRewardedRef.current = false;
     
     try {
-      // STEP 1: Show Monetag ad - User must watch at least 3 seconds
       setCurrentAdStep('monetag');
       const monetagResult = await showMonetagAd();
       
-      // Handle Monetag unavailable
       if (monetagResult.unavailable) {
-        showNotification("Ads not available. Please try again later.", "error");
+        showNotification("Ad not available. Please open in Telegram app.", "error");
         return;
       }
       
-      // Check if Monetag was closed before 3 seconds
       if (!monetagResult.watchedFully) {
-        showNotification("Claimed too fast!", "error");
+        showNotification("Claimed too fast! Watch the full ad.", "error");
         return;
       }
       
-      // Monetag was watched fully (at least 3 seconds)
       if (!monetagResult.success) {
         showNotification("Ad failed. Please try again.", "error");
         return;
       }
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // STEP 2: Show Adsgram ad
-      setCurrentAdStep('adsgram');
-      const adsgramSuccess = await showAdsgramAd();
-
-      if (!adsgramSuccess) {
-        showNotification("Please complete the ad to earn reward.", "error");
-        return;
-      }
       
-      // STEP 3: Grant reward after both complete successfully
       setCurrentAdStep('verifying');
-      
-      // Ensure the verification step is brief and follows through
       await new Promise(resolve => setTimeout(resolve, 300));
 
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
         
-        // Optimistic UI update - only ONE increment to progress
         const rewardAmount = appSettings?.rewardPerAd || 2;
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
@@ -166,71 +124,88 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
           adsWatchedToday: (old?.adsWatchedToday || 0) + 1
         }));
         
-        // Instant notification for better UX
-        showNotification(`+${rewardAmount} PAD earned!`, "success");
+        showNotification(`+${rewardAmount} ANX earned!`, "success");
         
-        // Sync with backend - single reward call
         watchAdMutation.mutate('monetag');
       }
     } catch (error) {
       console.error('Ad watching error:', error);
-      showNotification("Error playing ads. Try again.", "error");
+      showNotification("Error playing ad. Try again.", "error");
     } finally {
-      // Always reset state on completion or error
       setCurrentAdStep('idle');
       setIsShowingAds(false);
-      // Ensure data is fresh
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
   };
 
   const adsWatchedToday = user?.adsWatchedToday || 0;
   const dailyLimit = appSettings?.dailyAdLimit || 50;
+  const rewardPerAd = appSettings?.rewardPerAd || 2;
 
   return (
-    <Card className="rounded-2xl minimal-card mb-3">
-      <CardContent className="p-4">
-        <div className="text-center mb-3">
-          <h2 className="text-base font-bold text-white mb-1">Viewing ads</h2>
-          <p className="text-[#AAAAAA] text-xs">Get PAD for watching commercials</p>
+    <div className="rounded-2xl bg-[#141414] border border-white/10 mb-3 overflow-hidden">
+      <div className="px-4 py-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-[#F5C542]/10 border border-[#F5C542]/20 flex items-center justify-center flex-shrink-0">
+            <Tv className="w-5 h-5 text-[#F5C542]" />
+          </div>
+          <div>
+            <h2 className="text-white font-black text-sm leading-tight">Watch & Earn</h2>
+            <p className="text-[#8E8E93] text-[11px] mt-0.5">Each ad = <span className="text-[#F5C542] font-bold">{rewardPerAd} ANX</span> instantly</p>
+          </div>
         </div>
-        
-        <div className="flex justify-center mb-3">
-          <button
-            onClick={handleStartEarning}
-            disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-            className="btn-primary px-6 py-3 flex items-center gap-2 min-w-[160px] justify-center text-base disabled:opacity-50"
-            data-testid="button-watch-ad"
-          >
-            {isShowingAds ? (
-              <>
-                {currentAdStep === 'verifying' ? (
-                  <Shield size={16} className="animate-pulse text-green-400" />
-                ) : (
-                  <Clock size={16} className="animate-spin" />
-                )}
-                <span className="text-sm font-semibold">
-                  {currentAdStep === 'monetag' ? 'Monetag...' : 
-                   currentAdStep === 'adsgram' ? 'AdGram...' :
-                   currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
-                </span>
-              </>
-            ) : (
-              <>
-                <Play size={16} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-semibold">Start Earning</span>
-              </>
-            )}
-          </button>
+
+        <button
+          onClick={handleStartEarning}
+          disabled={isShowingAds || adsWatchedToday >= dailyLimit}
+          className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+          style={{
+            background: isShowingAds || adsWatchedToday >= dailyLimit
+              ? 'rgba(255,255,255,0.05)'
+              : 'linear-gradient(135deg, #F5C542 0%, #f0a500 100%)',
+            color: isShowingAds || adsWatchedToday >= dailyLimit ? '#888' : '#000',
+            border: 'none',
+          }}
+          data-testid="button-watch-ad"
+        >
+          {isShowingAds ? (
+            <>
+              {currentAdStep === 'verifying' ? (
+                <Shield size={16} className="animate-pulse text-green-400" />
+              ) : (
+                <Clock size={16} className="animate-spin" />
+              )}
+              <span>
+                {currentAdStep === 'monetag' ? 'Playing Ad...' : 
+                 currentAdStep === 'adsgram' ? 'Loading Ad...' :
+                 currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
+              </span>
+            </>
+          ) : adsWatchedToday >= dailyLimit ? (
+            <>
+              <span>Daily Limit Reached</span>
+            </>
+          ) : (
+            <>
+              <Play size={16} />
+              <span>Watch Ad — Earn {rewardPerAd} ANX</span>
+            </>
+          )}
+        </button>
+
+        <div className="flex items-center justify-between mt-3 px-1">
+          <span className="text-[#8E8E93] text-[10px] font-semibold">Ads Today</span>
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-24 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#F5C542] transition-all"
+                style={{ width: `${Math.min((adsWatchedToday / dailyLimit) * 100, 100)}%` }}
+              />
+            </div>
+            <span className="text-white text-[10px] font-black tabular-nums">{adsWatchedToday}/{dailyLimit}</span>
+          </div>
         </div>
-        
-        {/* Watched counter - Always visible */}
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">
-            Watched: {adsWatchedToday}/{dailyLimit}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

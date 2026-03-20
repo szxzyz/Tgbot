@@ -139,6 +139,10 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
                 </div>
               </div>
 
+              <div className="bg-[#F5C542]/5 border border-[#F5C542]/20 rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
+                <span className="text-[#F5C542] text-[10px] font-black">💎 1,000,000 ANX = 1 TON</span>
+              </div>
+
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-white/40 text-[10px] font-black uppercase tracking-widest">

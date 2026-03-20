@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Share2, Users, Zap, CheckCircle, XCircle, Loader2, UserPlus, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showNotification } from "@/components/AppNotification";
@@ -23,7 +23,6 @@ interface InvitePopupProps {
 
 export default function InvitePopup({ onClose }: InvitePopupProps) {
   const [isSharing, setIsSharing] = useState(false);
-  const queryClient = useQueryClient();
 
   const { data: user } = useQuery<any>({
     queryKey: ["/api/auth/user"],
@@ -37,26 +36,6 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
     staleTime: 30000,
   });
 
-  const syncBoostsMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/referrals/sync-boosts", {
-        method: "POST",
-        credentials: "include",
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/referrals/list"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-    },
-  });
-
-  // Auto-sync boosts when popup opens
-  useEffect(() => {
-    syncBoostsMutation.mutate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const { data: botInfo } = useQuery<{ username: string }>({
     queryKey: ['/api/bot-info'],
     staleTime: 60 * 60 * 1000,
@@ -68,7 +47,6 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
 
   const referrals = referralData?.referrals || [];
   const activeReferrals = referrals.filter((r) => r.isActive);
-  const totalBoost = activeReferrals.length * 0.02;
 
   const copyLink = () => {
     if (!referralLink) return;
@@ -81,7 +59,7 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
     setIsSharing(true);
     try {
       const tgWebApp = (window as any).Telegram?.WebApp;
-      const shareTitle = "💵 Earn SAT by completing tasks and watching ads.";
+      const shareTitle = "💰 Earn ANX by watching ads! Join me and earn real crypto.";
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareTitle)}`;
       if (tgWebApp?.openTelegramLink) {
         tgWebApp.openTelegramLink(shareUrl);
@@ -90,11 +68,6 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
       }
     } catch {}
     setIsSharing(false);
-  };
-
-  const membershipLabel = (r: ReferralItem) => {
-    if (r.channelMember) return null;
-    return "Left channel";
   };
 
   return (
@@ -147,30 +120,31 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
               <div className="flex items-start gap-3 bg-white/5 rounded-xl p-3">
                 <Users className="w-4 h-4 text-[#F5C542] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white text-xs font-bold">Friend joins &amp; stays active</p>
-                  <p className="text-white/50 text-xs mt-0.5">They must join the channel to count.</p>
+                  <p className="text-white text-xs font-bold">Friend joins &amp; watches ads</p>
+                  <p className="text-white/50 text-xs mt-0.5">Your friend must join and watch ads to count.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white/5 rounded-xl p-3">
                 <Zap className="w-4 h-4 text-[#F5C542] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white text-xs font-bold">You earn +0.02 SAT/h per friend</p>
-                  <p className="text-white/50 text-xs mt-0.5">More friends = faster mining, up to 100/h Sats.</p>
+                  <p className="text-white text-xs font-bold">You earn 10% of their ad rewards</p>
+                  <p className="text-white/50 text-xs mt-0.5">
+                    Friend earns 2 ANX from an ad → You get 0.2 ANX automatically.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Current boost */}
+            {/* Info box */}
             {activeReferrals.length > 0 && (
-              <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
-                <Zap className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <div className="bg-[#F5C542]/10 border border-[#F5C542]/20 rounded-xl px-4 py-3 flex items-center gap-3">
+                <Zap className="w-5 h-5 text-[#F5C542] flex-shrink-0" />
                 <div>
-                  <p className="text-green-400 font-bold text-sm">
-                    Active Boost: +{totalBoost.toFixed(1)}/h
+                  <p className="text-[#F5C542] font-bold text-sm">
+                    {activeReferrals.length} Active Friend{activeReferrals.length !== 1 ? "s" : ""}
                   </p>
                   <p className="text-white/50 text-xs">
-                    {activeReferrals.length} active friend
-                    {activeReferrals.length !== 1 ? "s" : ""}
+                    You earn 10% of their ad earnings automatically.
                   </p>
                 </div>
               </div>
@@ -216,43 +190,29 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
                   <Users className="w-3.5 h-3.5" />
                   Your Friends ({referrals.length})
                 </p>
-                {referrals.length > 0 && (
-                  <button
-                    onClick={() => syncBoostsMutation.mutate()}
-                    disabled={syncBoostsMutation.isPending}
-                    className="text-blue-400 text-xs hover:text-blue-300 transition-colors flex items-center gap-1"
-                  >
-                    {syncBoostsMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      "Refresh"
-                    )}
-                  </button>
-                )}
               </div>
 
               {referralsLoading ? (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                  <Loader2 className="w-5 h-5 text-[#F5C542] animate-spin" />
                 </div>
               ) : referrals.length === 0 ? (
                 <div className="text-center py-6 text-white/30 text-sm">
                   No friends invited yet.
                   <br />
                   <span className="text-xs">
-                    Share your link to start boosting!
+                    Share your link to start earning referral bonuses!
                   </span>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {referrals.map((r, i) => {
-                    const label = membershipLabel(r);
                     return (
                       <div
                         key={i}
                         className={`rounded-xl px-3.5 py-3 border ${
                           r.isActive
-                            ? "bg-green-500/5 border-green-500/20"
+                            ? "bg-[#F5C542]/5 border-[#F5C542]/20"
                             : "bg-white/5 border-white/10"
                         }`}
                       >
@@ -273,12 +233,12 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
                             </p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-yellow-400 text-xs font-bold">
-                              {r.totalSatsEarned.toLocaleString()} SAT
+                            <p className="text-[#F5C542] text-xs font-bold">
+                              {r.totalSatsEarned.toLocaleString()} ANX
                             </p>
                             {r.isActive && (
                               <p className="text-green-400 text-xs font-semibold">
-                                +0.02/h
+                                10% share
                               </p>
                             )}
                           </div>
@@ -300,11 +260,6 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
                               ? "Pending"
                               : "Inactive"}
                           </span>
-                          {label && (
-                            <span className="text-[10px] text-red-400/70">
-                              ({label})
-                            </span>
-                          )}
                         </div>
                       </div>
                     );
