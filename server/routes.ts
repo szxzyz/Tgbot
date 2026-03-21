@@ -1725,13 +1725,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Lazy per-user daily reset: if last ad was on a previous UTC calendar day, reset count
+      const nowUTC = new Date();
+      const todayDateUTC = nowUTC.toISOString().split('T')[0];
+      if (user.lastAdDate) {
+        const lastAdDateUTC = new Date(user.lastAdDate).toISOString().split('T')[0];
+        if (lastAdDateUTC !== todayDateUTC) {
+          await db.update(users).set({ adsWatchedToday: 0, updatedAt: nowUTC }).where(eq(users.id, userId));
+          user.adsWatchedToday = 0;
+        }
+      }
+
       // Fetch admin settings for daily limit and reward amount
       const dailyAdLimitSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'daily_ad_limit')).limit(1);
       const rewardPerAdSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'reward_per_ad')).limit(1);
       const bugRewardPerAdSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'bug_reward_per_ad')).limit(1);
       
       const dailyAdLimit = dailyAdLimitSetting[0]?.settingValue ? parseInt(dailyAdLimitSetting[0].settingValue) : 50;
-      const rewardPerAdAXN = rewardPerAdSetting[0]?.settingValue ? parseInt(rewardPerAdSetting[0].settingValue) : 1000;
+      const rewardPerAdAXN = rewardPerAdSetting[0]?.settingValue ? parseInt(rewardPerAdSetting[0].settingValue) : 2;
       const bugRewardPerAd = bugRewardPerAdSetting[0]?.settingValue ? parseInt(bugRewardPerAdSetting[0].settingValue) : 1;
       
       // Enforce daily ad limit (configurable, default 50)
@@ -1943,10 +1954,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await storage.updateUserStreak(userId);
       
+      if (result.alreadyClaimedToday) {
+        return res.status(400).json({ 
+          success: false,
+          alreadyClaimedToday: true,
+          message: 'You have already claimed your daily login reward today. Come back tomorrow!'
+        });
+      }
+      
       if (parseFloat(result.rewardEarned) === 0) {
         return res.status(400).json({ 
           success: false,
-          message: 'Please wait 5 minutes before claiming again!'
+          message: 'Daily reward not available right now.'
         });
       }
       

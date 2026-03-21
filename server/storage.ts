@@ -813,7 +813,7 @@ export class DatabaseStorage implements IStorage {
     return bucketStart;
   }
 
-  async updateUserStreak(userId: string): Promise<{ newStreak: number; rewardEarned: string; isBonusDay: boolean }> {
+  async updateUserStreak(userId: string): Promise<{ newStreak: number; rewardEarned: string; isBonusDay: boolean; alreadyClaimedToday?: boolean }> {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     
     if (!user) {
@@ -821,19 +821,33 @@ export class DatabaseStorage implements IStorage {
     }
 
     const now = new Date();
+    const todayUTC = now.toISOString().split('T')[0]; // "YYYY-MM-DD"
     const lastStreakDate = user.lastStreakDate;
-    let newStreak = (user.currentStreak || 0) + 1;
-    let rewardEarned = "1";
-    let isBonusDay = false;
 
     if (lastStreakDate) {
       const lastClaim = new Date(lastStreakDate);
-      const minutesSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60);
-      
-      if (minutesSinceLastClaim < 5) {
-        return { newStreak: user.currentStreak || 0, rewardEarned: "0", isBonusDay: false };
+      const lastClaimUTC = lastClaim.toISOString().split('T')[0];
+
+      // Already claimed today — block
+      if (lastClaimUTC === todayUTC) {
+        return { newStreak: user.currentStreak || 0, rewardEarned: "0", isBonusDay: false, alreadyClaimedToday: true };
+      }
+
+      // Check if streak should continue or reset
+      const yesterday = new Date(now);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      const yesterdayUTC = yesterday.toISOString().split('T')[0];
+
+      if (lastClaimUTC !== yesterdayUTC) {
+        // Missed a day — reset streak to 1
+        user.currentStreak = 0;
       }
     }
+
+    const streakReward = 10; // 10 ANX per daily login
+    const newStreak = (user.currentStreak || 0) + 1;
+    const rewardEarned = String(streakReward);
+    const isBonusDay = newStreak % 7 === 0; // Every 7th day is a bonus day
 
     await db
       .update(users)
@@ -849,7 +863,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         amount: rewardEarned,
         source: 'bonus_claim',
-        description: `Bonus claim - earned 1 AXN`,
+        description: `Daily login reward - Day ${newStreak} streak`,
       });
     }
 
