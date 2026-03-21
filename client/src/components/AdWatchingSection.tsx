@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield, Tv } from "lucide-react";
+import { Play, Clock, Shield } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
@@ -10,11 +10,14 @@ declare global {
   }
 }
 
+const ACCENT = "#C6F135";
+
 interface AdWatchingSectionProps {
   user: any;
+  onReward?: (amount: number) => void;
 }
 
-export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
+export default function AdWatchingSection({ user, onReward }: AdWatchingSectionProps) {
   const queryClient = useQueryClient();
   const [isShowingAds, setIsShowingAds] = useState(false);
   const [currentAdStep, setCurrentAdStep] = useState<'idle' | 'monetag' | 'adsgram' | 'verifying'>('idle');
@@ -40,17 +43,22 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
       }
       return response.json();
     },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async (data: any) => {
+      // Directly update balance from backend response — reliable and instant
+      if (data?.newBalance !== undefined) {
+        queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
+          ...old,
+          balance: String(data.newBalance),
+          adsWatchedToday: data.adsWatchedToday ?? ((old?.adsWatchedToday || 0) + 1),
+          adsWatched: (old?.adsWatched || 0) + 1,
+        }));
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/withdrawal-eligibility"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/referrals/valid-count"] });
     },
     onError: (error: any) => {
       sessionRewardedRef.current = false;
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
       if (error.status === 429) {
         const limit = error.limit || appSettings?.dailyAdLimit || 50;
         showNotification(`Daily ad limit reached (${limit} ads/day)`, "error");
@@ -71,14 +79,12 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
         window.show_9368336()
           .then(() => {
             const watchDuration = Date.now() - monetagStartTimeRef.current;
-            const watchedAtLeast3Seconds = watchDuration >= 3000;
-            resolve({ success: true, watchedFully: watchedAtLeast3Seconds, unavailable: false });
+            resolve({ success: true, watchedFully: watchDuration >= 3000, unavailable: false });
           })
           .catch((error) => {
             console.error('Monetag ad error:', error);
             const watchDuration = Date.now() - monetagStartTimeRef.current;
-            const watchedAtLeast3Seconds = watchDuration >= 3000;
-            resolve({ success: false, watchedFully: watchedAtLeast3Seconds, unavailable: false });
+            resolve({ success: false, watchedFully: watchDuration >= 3000, unavailable: false });
           });
       } else {
         resolve({ success: false, watchedFully: false, unavailable: true });
@@ -88,44 +94,42 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
 
   const handleStartEarning = async () => {
     if (isShowingAds) return;
-    
     setIsShowingAds(true);
     sessionRewardedRef.current = false;
-    
+
     try {
       setCurrentAdStep('monetag');
       const monetagResult = await showMonetagAd();
-      
+
       if (monetagResult.unavailable) {
         showNotification("Ad not available. Please open in Telegram app.", "error");
         return;
       }
-      
       if (!monetagResult.watchedFully) {
-        showNotification("Claimed too fast! Watch the full ad.", "error");
+        showNotification("Watch the full ad to earn ANX.", "error");
         return;
       }
-      
       if (!monetagResult.success) {
         showNotification("Ad failed. Please try again.", "error");
         return;
       }
-      
+
       setCurrentAdStep('verifying');
       await new Promise(resolve => setTimeout(resolve, 300));
 
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
-        
         const rewardAmount = appSettings?.rewardPerAd || 2;
+
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
           balance: String(parseFloat(old?.balance || '0') + rewardAmount),
-          adsWatchedToday: (old?.adsWatchedToday || 0) + 1
+          adsWatchedToday: (old?.adsWatchedToday || 0) + 1,
+          adsWatched: (old?.adsWatched || 0) + 1,
         }));
-        
-        showNotification(`+${rewardAmount} ANX earned!`, "success");
-        
+
+        onReward?.(rewardAmount);
+        showNotification(`+${rewardAmount} ANX added!`, "success");
         watchAdMutation.mutate('monetag');
       }
     } catch (error) {
@@ -141,30 +145,28 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const adsWatchedToday = user?.adsWatchedToday || 0;
   const dailyLimit = appSettings?.dailyAdLimit || 50;
   const rewardPerAd = appSettings?.rewardPerAd || 2;
+  const limitReached = adsWatchedToday >= dailyLimit;
 
   return (
-    <div className="rounded-2xl bg-[#141414] border border-white/10 mb-3 overflow-hidden">
-      <div className="px-4 py-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-[#F5C542]/10 border border-[#F5C542]/20 flex items-center justify-center flex-shrink-0">
-            <Tv className="w-5 h-5 text-[#F5C542]" />
-          </div>
-          <div>
-            <h2 className="text-white font-black text-sm leading-tight">Watch & Earn</h2>
-            <p className="text-[#8E8E93] text-[11px] mt-0.5">Each ad = <span className="text-[#F5C542] font-bold">{rewardPerAd} ANX</span> instantly</p>
-          </div>
+    <div className="rounded-2xl overflow-hidden mb-3" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
+      <div className="px-4 pt-4 pb-4">
+        <div className="mb-4">
+          <h2 className="text-white font-black text-base leading-tight mb-0.5">Viewing ads</h2>
+          <p className="text-[12px]" style={{ color: '#8E8E93' }}>
+            Get ANX for watching commercials
+          </p>
         </div>
 
         <button
           onClick={handleStartEarning}
-          disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-          className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={isShowingAds || limitReached}
+          className="w-full h-13 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mb-3"
           style={{
-            background: isShowingAds || adsWatchedToday >= dailyLimit
-              ? 'rgba(255,255,255,0.05)'
-              : 'linear-gradient(135deg, #F5C542 0%, #f0a500 100%)',
-            color: isShowingAds || adsWatchedToday >= dailyLimit ? '#888' : '#000',
+            height: '52px',
+            background: isShowingAds || limitReached ? 'rgba(255,255,255,0.05)' : ACCENT,
+            color: isShowingAds || limitReached ? '#888' : '#000',
             border: 'none',
+            boxShadow: !isShowingAds && !limitReached ? `0 0 16px rgba(198,241,53,0.25)` : 'none',
           }}
           data-testid="button-watch-ad"
         >
@@ -176,35 +178,39 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
                 <Clock size={16} className="animate-spin" />
               )}
               <span>
-                {currentAdStep === 'monetag' ? 'Playing Ad...' : 
-                 currentAdStep === 'adsgram' ? 'Loading Ad...' :
-                 currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
+                {currentAdStep === 'monetag' ? 'Playing Ad...' :
+                  currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
               </span>
             </>
-          ) : adsWatchedToday >= dailyLimit ? (
-            <>
-              <span>Daily Limit Reached</span>
-            </>
+          ) : limitReached ? (
+            <span>Daily Limit Reached</span>
           ) : (
             <>
-              <Play size={16} />
-              <span>Watch Ad — Earn {rewardPerAd} ANX</span>
+              <Play size={16} fill="currentColor" />
+              <span>Start watching</span>
             </>
           )}
         </button>
 
-        <div className="flex items-center justify-between mt-3 px-1">
-          <span className="text-[#8E8E93] text-[10px] font-semibold">Ads Today</span>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-24 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#F5C542] transition-all"
-                style={{ width: `${Math.min((adsWatchedToday / dailyLimit) * 100, 100)}%` }}
-              />
-            </div>
-            <span className="text-white text-[10px] font-black tabular-nums">{adsWatchedToday}/{dailyLimit}</span>
-          </div>
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[11px] font-semibold" style={{ color: '#555' }}>
+            Limit <span style={{ color: '#888' }}>{adsWatchedToday}/{dailyLimit}</span>
+          </span>
+          <span className="text-[11px] font-semibold" style={{ color: '#555' }}>
+            <span style={{ color: ACCENT }}>{rewardPerAd} ANX</span> per ad
+          </span>
         </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1 w-full" style={{ background: '#111' }}>
+        <div
+          className="h-full transition-all"
+          style={{
+            width: `${Math.min((adsWatchedToday / dailyLimit) * 100, 100)}%`,
+            background: limitReached ? '#555' : ACCENT,
+          }}
+        />
       </div>
     </div>
   );

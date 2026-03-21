@@ -59,6 +59,10 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
   const username = user?.telegramUsername || telegramUser?.username || null;
   const telegramId = user?.telegramId || telegramUser?.id?.toString() || null;
 
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : null;
+
   const withdrawals = txData?.withdrawals || [];
 
   const contestMutation = useMutation({
@@ -177,6 +181,11 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
                     <p className="text-white font-bold text-sm truncate">{displayName}</p>
                     {username && <p className="text-white/50 text-xs mt-0.5">@{username}</p>}
                     {telegramId && <p className="text-white/30 text-[10px] mt-1 font-mono">ID: {telegramId}</p>}
+                    {memberSince && (
+                      <p className="text-white/30 text-[10px] mt-1">
+                        Member since: <span className="text-white/50">{memberSince}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

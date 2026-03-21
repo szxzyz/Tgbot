@@ -1,96 +1,95 @@
 import { useQuery } from "@tanstack/react-query";
-import { User as UserIcon, Languages } from "lucide-react";
-import { useLocation } from "wouter";
-import { useAdmin } from "@/hooks/useAdmin";
-import { useLanguage } from "@/hooks/useLanguage";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const { data: user } = useQuery<any>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
-  
-  const [, setLocation] = useLocation();
-  const { isAdmin } = useAdmin();
-  const { setLanguage, t } = useLanguage();
 
-  const tonBalance = parseFloat(user?.tonBalance || "0");
-  const hrumBalance = parseFloat(user?.balance || "0");
+  const balance = Math.floor(parseFloat(user?.balance || "0"));
 
-  const formatBalance = (balance: number) => {
-    if (balance >= 1000000) {
-      return (balance / 1000000).toFixed(1) + 'M';
-    } else if (balance >= 1000) {
-      return (balance / 1000).toFixed(1) + 'k';
-    }
-    return Math.round(balance).toLocaleString();
-  };
-
-  const telegramPhotoUrl = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
-  const photoUrl = telegramPhotoUrl || user?.profileImageUrl || user?.profileUrl || null;
+  const formatBalance = (n: number) => n.toLocaleString();
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-black/95 border-b border-white/5 pt-[max(env(safe-area-inset-top),20px)]">
-      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Profile Photo */}
-          <div 
-            className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-white/10 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
-            onClick={() => setLocation("/profile")}
+    <div
+      className="fixed top-0 left-0 right-0 z-40"
+      style={{ paddingTop: 'max(env(safe-area-inset-top), 14px)' }}
+    >
+      <div className="max-w-md mx-auto px-4 pb-2 flex items-center justify-end">
+
+        {/* ChatGPT-style pill capsule */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '9px',
+            padding: '7px 14px 7px 10px',
+            borderRadius: '999px',
+            background: 'rgba(22, 22, 24, 0.88)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 2px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}
+        >
+          {/* ANX coin icon */}
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(198,241,53,0.1)',
+              border: '1px solid rgba(198,241,53,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
           >
-            {photoUrl ? (
-              <img 
-                src={photoUrl} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <UserIcon className="w-4 h-4 text-[#D1D5DB]" />
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 min-w-[75px] shadow-sm">
-            <span className="text-sm text-white font-bold tracking-tight">
-              {formatBalance(hrumBalance)}
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 900,
+                color: '#C6F135',
+                letterSpacing: '-0.5px',
+                lineHeight: 1,
+                fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              A
             </span>
-            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-              <img 
-                src="/images/hrum-logo.jpg" 
-                alt="Hrum" 
-                className="w-full h-full object-cover rounded-sm"
-              />
-            </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 min-w-[75px] shadow-sm">
-            <span className="text-sm text-white font-bold tracking-tight">
-              {tonBalance.toFixed(2)}
+          {/* Text block */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1px' }}>
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.38)',
+                lineHeight: 1,
+              }}
+            >
+              ANX Balance
             </span>
-            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-              <img 
-                src="/images/ton.png" 
-                alt="TON" 
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 flex items-center justify-center shadow-sm">
-            <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider mr-1.5">PLAN:</span>
-            <span className={`text-xs font-bold uppercase tracking-widest ${user?.planStatus === 'Premium' ? 'text-yellow-400' : 'text-blue-400'}`}>
-              {user?.planStatus || 'Trial'}
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 800,
+                color: '#ffffff',
+                letterSpacing: '-0.3px',
+                lineHeight: 1.15,
+                fontVariantNumeric: 'tabular-nums',
+                fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              {formatBalance(balance)}
             </span>
           </div>
         </div>
+
       </div>
     </div>
   );
