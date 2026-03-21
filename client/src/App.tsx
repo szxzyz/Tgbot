@@ -21,7 +21,6 @@ declare global {
 const Home = lazy(() => import("@/pages/Home"));
 
 const Admin = lazy(() => import("@/pages/Admin"));
-const Profile = lazy(() => import("@/pages/Profile"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -63,7 +62,6 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/task/create" component={CreateTask} />
         <Route path="/create-task" component={CreateTask} />
-        <Route path="/profile" component={Profile} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/country-controls" component={CountryControls} />
         <Route component={NotFound} />
