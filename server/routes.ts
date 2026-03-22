@@ -419,6 +419,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/project-stats", async (req, res) => {
+    try {
+      const totalUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const totalUsersCount = Number(totalUsersResult[0]?.count || 0);
+
+      const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+      const onlineUsersResult = await db.select({ count: sql<number>`count(distinct ${earnings.userId})` })
+        .from(earnings)
+        .where(gte(earnings.createdAt, fifteenMinsAgo));
+      const onlineCount = Number(onlineUsersResult[0]?.count || 0);
+
+      const totalWithdrawalsResult = await db.select({ total: sql<number>`coalesce(sum(${withdrawals.amount}), 0)` })
+        .from(withdrawals)
+        .where(eq(withdrawals.status, 'approved'));
+      const totalWithdrawn = Number(totalWithdrawalsResult[0]?.total || 0);
+
+      const firstUserResult = await db.select({ createdAt: users.createdAt })
+        .from(users)
+        .orderBy(users.createdAt)
+        .limit(1);
+      const projectStartDate = firstUserResult[0]?.createdAt ? new Date(firstUserResult[0].createdAt) : new Date();
+      const projectDays = Math.max(1, Math.floor((Date.now() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      res.json({
+        totalUsers: totalUsersCount,
+        onlineUsers: onlineCount,
+        totalWithdrawn: Math.floor(totalWithdrawn),
+        projectDays,
+      });
+    } catch (error) {
+      console.error('Error fetching project stats:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.post("/api/ads/extra-watch", authenticateTelegram, async (req: any, res) => {
     try {
       const user = req.user?.user;
