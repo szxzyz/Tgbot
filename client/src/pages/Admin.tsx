@@ -19,6 +19,7 @@ import {
   RefreshCw, Settings, Shield, LogOut, Globe, Ban, CheckCircle,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { showNotification } from "@/components/AppNotification";
 
 function fmt(n: number | string): string {
   const v = typeof n === "string" ? parseFloat(n) : n;
@@ -490,11 +491,14 @@ function UserProfilePanel({ user: init, onClose }: { user: any; onClose: () => v
       });
       const data = await r.json();
       if (data.success) {
+        const msg = init.banned ? "User unbanned successfully" : "User banned successfully";
+        showNotification(msg, init.banned ? "success" : "info");
         toast({ title: init.banned ? "User unbanned" : "User banned" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
         onClose();
       }
     } catch {
+      showNotification("Action failed — please try again", "error");
       toast({ title: "Error", variant: "destructive" });
     } finally {
       setBanning(false);
@@ -602,14 +606,17 @@ function WithdrawSection({ payoutData, pendingData }: { payoutData: any; pending
       const r = await apiRequest("POST", `/api/admin/withdrawals/${id}/approve`, {});
       const d = await r.json();
       if (d.success) {
+        showNotification("Withdrawal approved successfully", "success");
         toast({ title: "Withdrawal approved" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals/pending"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals/processed"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       } else {
+        showNotification(d.message || "Approval failed", "error");
         toast({ title: d.message || "Failed", variant: "destructive" });
       }
     } catch {
+      showNotification("Error approving withdrawal", "error");
       toast({ title: "Error", variant: "destructive" });
     }
   };
@@ -619,14 +626,17 @@ function WithdrawSection({ payoutData, pendingData }: { payoutData: any; pending
       const r = await apiRequest("POST", `/api/admin/withdrawals/${id}/reject`, { reason: "Rejected by admin" });
       const d = await r.json();
       if (d.success) {
+        showNotification("Withdrawal rejected", "info");
         toast({ title: "Withdrawal rejected" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals/pending"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals/processed"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       } else {
+        showNotification(d.message || "Rejection failed", "error");
         toast({ title: d.message || "Failed", variant: "destructive" });
       }
     } catch {
+      showNotification("Error rejecting withdrawal", "error");
       toast({ title: "Error", variant: "destructive" });
     }
   };
@@ -823,12 +833,14 @@ function BanSection() {
       const r = await apiRequest("POST", `/api/admin/users/${userId}/unban`);
       const d = await r.json();
       if (d.success) {
+        showNotification("User unbanned successfully", "success");
         toast({ title: "User unbanned" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/banned-users-details"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/ban-logs"] });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       }
     } catch {
+      showNotification("Error unbanning user", "error");
       toast({ title: "Error", variant: "destructive" });
     } finally {
       setUnbanningId(null);
@@ -1034,8 +1046,8 @@ function SettingsSection() {
     affiliateCommission: "10",
     referralBoostPerInvite: "0.02",
     referralRewardEnabled: false,
-    minimum_withdrawal_sat: "100",
-    withdrawal_fee_sat: "0",
+    minimum_withdrawal_ton: "100",
+    withdrawal_fee_ton: "0",
     withdrawalInviteRequirementEnabled: true,
     minimumInvitesForWithdrawal: "3",
     channelJoinRequired: true,
@@ -1049,8 +1061,8 @@ function SettingsSection() {
         affiliateCommission: settingsData.affiliateCommission?.toString() || "10",
         referralBoostPerInvite: settingsData.referralBoostPerInvite?.toString() || "0.02",
         referralRewardEnabled: settingsData.referralRewardEnabled || false,
-        minimum_withdrawal_sat: settingsData.minWithdrawalAmountTON?.toString() || "100",
-        withdrawal_fee_sat: settingsData.withdrawalFeeTON?.toString() || "0",
+        minimum_withdrawal_ton: settingsData.minWithdrawalAmountTON?.toString() || "100",
+        withdrawal_fee_ton: settingsData.withdrawalFeeTON?.toString() || "0",
         withdrawalInviteRequirementEnabled: settingsData.withdrawalInviteRequirementEnabled !== false,
         minimumInvitesForWithdrawal: settingsData.minimumInvitesForWithdrawal?.toString() || "3",
         channelJoinRequired: settingsData.channelJoinRequired !== false,
@@ -1067,8 +1079,8 @@ function SettingsSection() {
         affiliateCommission: parseFloat(s.affiliateCommission),
         referralBoostPerInvite: parseFloat(s.referralBoostPerInvite),
         referralRewardEnabled: Boolean(s.referralRewardEnabled),
-        minimum_withdrawal_sat: parseFloat(s.minimum_withdrawal_sat),
-        withdrawal_fee_sat: parseFloat(s.withdrawal_fee_sat),
+        minimum_withdrawal_ton: parseFloat(s.minimum_withdrawal_ton),
+        withdrawal_fee_ton: parseFloat(s.withdrawal_fee_ton),
         withdrawalInviteRequirementEnabled: Boolean(s.withdrawalInviteRequirementEnabled),
         minimumInvitesForWithdrawal: parseInt(s.minimumInvitesForWithdrawal),
         channelJoinRequired: Boolean(s.channelJoinRequired),
@@ -1076,12 +1088,15 @@ function SettingsSection() {
       const r = await apiRequest("PUT", "/api/admin/settings", payload);
       const d = await r.json();
       if (d.success) {
+        showNotification("Settings saved successfully", "success");
         toast({ title: "Settings saved" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       } else {
+        showNotification(d.message || "Failed to save settings", "error");
         toast({ title: d.message || "Failed", variant: "destructive" });
       }
     } catch {
+      showNotification("Error saving settings — please try again", "error");
       toast({ title: "Error saving settings", variant: "destructive" });
     } finally {
       setSaving(false);
@@ -1153,10 +1168,10 @@ function SettingsSection() {
       {cat === "withdrawals" && (
         <SettCard title="Withdrawal Settings" icon={<DollarSign className="w-3.5 h-3.5" />} color="text-green-400">
           <SettField label="Minimum Withdrawal (ANX)" hint="Minimum ANX required to withdraw">
-            <Input type="number" value={s.minimum_withdrawal_sat} onChange={e => setS({ ...s, minimum_withdrawal_sat: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
+            <Input type="number" value={s.minimum_withdrawal_ton} onChange={e => setS({ ...s, minimum_withdrawal_ton: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
           </SettField>
           <SettField label="Withdrawal Fee (ANX)" hint="Fee deducted per withdrawal (0 = free)">
-            <Input type="number" value={s.withdrawal_fee_sat} onChange={e => setS({ ...s, withdrawal_fee_sat: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
+            <Input type="number" value={s.withdrawal_fee_ton} onChange={e => setS({ ...s, withdrawal_fee_ton: e.target.value })} className="h-8 text-xs bg-[#0a0a0a] border-white/10" />
           </SettField>
           <div className="flex items-center justify-between py-1">
             <div>
@@ -1244,11 +1259,15 @@ function CountrySection() {
       const d = await r.json();
       if (d.success) {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/blocked-countries"] });
+        const msg = blocked ? `${code} unblocked` : `${code} blocked`;
+        showNotification(msg, "success");
         toast({ title: blocked ? `Unblocked ${code}` : `Blocked ${code}` });
       } else {
+        showNotification(d.message || "Country update failed", "error");
         toast({ title: d.message || "Failed", variant: "destructive" });
       }
     } catch {
+      showNotification("Error updating country status", "error");
       toast({ title: "Error", variant: "destructive" });
     } finally {
       setUpdating(prev => { const s = new Set(prev); s.delete(code); return s; });

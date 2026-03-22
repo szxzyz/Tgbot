@@ -102,13 +102,11 @@ function WithdrawNavIcon({ active }: { active?: boolean }) {
   );
 }
 
-function MenuNavIcon({ active }: { active?: boolean }) {
+function SpotlightNavIcon({ active }: { active?: boolean }) {
   const color = active ? ACCENT : "#666";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="5" width="18" height="2.5" rx="1.25" fill={color} />
-      <rect x="3" y="11" width="12" height="2.5" rx="1.25" fill={color} />
-      <rect x="3" y="17" width="15" height="2.5" rx="1.25" fill={color} />
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke={color} strokeWidth="1.7" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -191,6 +189,12 @@ export default function Home() {
     queryKey: ['/api/user/stats'],
     retry: false,
     refetchInterval: 30000,
+  });
+
+  useQuery({
+    queryKey: ['/api/referrals/list'],
+    staleTime: 60000,
+    retry: false,
   });
 
   const { runAdFlow } = useAdFlow();
@@ -487,7 +491,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <Header />
+      <Header onMenuClick={() => setMenuOpen(true)} />
 
       <main className="max-w-md mx-auto px-4 pt-16 pb-24" style={{ background: '#000', minHeight: '100vh' }}>
 
@@ -778,14 +782,14 @@ export default function Home() {
             </span>
           </button>
 
-          {/* Menu */}
+          {/* Spotlight */}
           <button
-            onClick={() => setMenuOpen(true)}
+            onClick={() => setLocation('/spotlight')}
             className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
           >
-            <MenuNavIcon />
+            <SpotlightNavIcon />
             <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
-              Menu
+              Spotlight
             </span>
           </button>
         </div>
