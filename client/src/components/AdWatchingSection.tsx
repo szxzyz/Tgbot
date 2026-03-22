@@ -51,7 +51,11 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       }
       return response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
+      const reward = data.rewardAXN ?? (appSettings?.rewardPerAd || 2);
+      showNotification(`+${reward} ANX earned!`, "success");
+      onReward?.(reward);
+
       if (data?.newBalance !== undefined) {
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
@@ -87,11 +91,9 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       monetagStartTimeRef.current = Date.now();
       window.show_9368336()
         .then(() => {
-          // Promise resolved — ad shown successfully
           resolve({ watched: true, unavailable: false });
         })
         .catch(() => {
-          // Promise rejected — check if user actually watched (≥3s means they saw the ad)
           const duration = Date.now() - monetagStartTimeRef.current;
           resolve({ watched: duration >= 3000, unavailable: false });
         });
@@ -121,18 +123,6 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
 
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
-        const rewardAmount = appSettings?.rewardPerAd || 2;
-
-        queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
-          ...old,
-          balance: String(parseFloat(old?.balance || '0') + rewardAmount),
-          adsWatchedToday: (old?.adsWatchedToday || 0) + 1,
-          adsWatched: (old?.adsWatched || 0) + 1,
-        }));
-
-        onReward?.(rewardAmount);
-        showNotification(`+${rewardAmount} ANX earned!`, "success");
-
         watchAdMutation.mutate('monetag');
       }
     } catch {

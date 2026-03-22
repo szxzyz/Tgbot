@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { data: user } = useQuery<any>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
 
   const balance = Math.floor(parseFloat(user?.balance || "0"));
-
   const formatBalance = (n: number) => n.toLocaleString();
 
   return (
@@ -15,9 +18,33 @@ export default function Header() {
       className="fixed top-0 left-0 right-0 z-40"
       style={{ paddingTop: 'max(env(safe-area-inset-top), 14px)' }}
     >
-      <div className="max-w-md mx-auto px-4 pb-2 flex items-center justify-end">
+      <div className="max-w-md mx-auto px-4 pb-2 flex items-center justify-between">
 
-        {/* ChatGPT-style pill capsule */}
+        {/* Menu button — top left */}
+        {onMenuClick ? (
+          <button
+            onClick={onMenuClick}
+            className="flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'rgba(22,22,24,0.88)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+            aria-label="Open menu"
+          >
+            <span style={{ display: 'block', width: 16, height: 2, borderRadius: 1, background: 'rgba(255,255,255,0.75)' }} />
+            <span style={{ display: 'block', width: 11, height: 2, borderRadius: 1, background: 'rgba(255,255,255,0.45)' }} />
+            <span style={{ display: 'block', width: 14, height: 2, borderRadius: 1, background: 'rgba(255,255,255,0.6)' }} />
+          </button>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
+
+        {/* ANX Balance pill — top right */}
         <div
           style={{
             display: 'flex',
@@ -32,7 +59,6 @@ export default function Header() {
             boxShadow: '0 2px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04)',
           }}
         >
-          {/* ANX coin icon */}
           <div
             style={{
               width: 28,
@@ -60,7 +86,6 @@ export default function Header() {
             </span>
           </div>
 
-          {/* Text block */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1px' }}>
             <span
               style={{
