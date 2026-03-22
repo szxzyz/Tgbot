@@ -79,8 +79,6 @@ function getDayStatus(displayIdx: number, todayDisplayIdx: number, currentStreak
   return 'future';
 }
 
-// ─── Custom Nav Icons ───────────────────────────────────────────────
-
 function FriendsNavIcon({ active }: { active?: boolean }) {
   const color = active ? ACCENT : "#666";
   return (
@@ -115,8 +113,6 @@ function MenuNavIcon({ active }: { active?: boolean }) {
   );
 }
 
-// ─── Stats Row Icons ─────────────────────────────────────────────────
-
 function AdsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -146,8 +142,6 @@ function DaysIcon() {
     </svg>
   );
 }
-
-// ─── Profile Icon ─────────────────────────────────────────────────────
 
 function DefaultAvatar() {
   return (
@@ -181,8 +175,6 @@ export default function Home() {
   const [dailyCheckinStep, setDailyCheckinStep] = useState<'idle' | 'ads' | 'countdown' | 'ready' | 'claiming'>('idle');
   const [checkForUpdatesStep, setCheckForUpdatesStep] = useState<'idle' | 'opened' | 'countdown' | 'ready' | 'claiming'>('idle');
   const [checkForUpdatesCountdown, setCheckForUpdatesCountdown] = useState(3);
-  const [rewardPopup, setRewardPopup] = useState<{ amount: number; visible: boolean }>({ amount: 0, visible: false });
-  const rewardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: appSettings } = useQuery<any>({ queryKey: ['/api/app-settings'], retry: false });
   const { data: missionStatus } = useQuery<any>({ queryKey: ['/api/missions/status'], retry: false });
@@ -198,6 +190,7 @@ export default function Home() {
   const { data: userStats } = useQuery<{ todayEarnings: string; totalEarnings: string }>({
     queryKey: ['/api/user/stats'],
     retry: false,
+    refetchInterval: 30000,
   });
 
   const { runAdFlow } = useAdFlow();
@@ -236,12 +229,6 @@ export default function Home() {
     }
   }, [checkForUpdatesStep, checkForUpdatesCountdown]);
 
-  const showRewardAnimation = (amount: number) => {
-    if (rewardTimerRef.current) clearTimeout(rewardTimerRef.current);
-    setRewardPopup({ amount, visible: true });
-    rewardTimerRef.current = setTimeout(() => setRewardPopup(p => ({ ...p, visible: false })), 2500);
-  };
-
   const showMonetagRewardedAd = (): Promise<{ success: boolean; unavailable: boolean }> => {
     return new Promise((resolve) => {
       if (typeof window.show_10401872 === 'function') {
@@ -276,7 +263,7 @@ export default function Home() {
         lastStreakDate: new Date().toISOString(),
       }));
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
-      showRewardAnimation(earned);
+      showNotification(`+${earned} ANX daily reward claimed!`, "success");
     },
     onError: (error: any) => {
       if (error.alreadyClaimedToday) {
@@ -349,7 +336,6 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks/home/unified'] });
       const satReward = Number(data.reward ?? 0);
-      showRewardAnimation(satReward);
       showNotification(`+${satReward.toLocaleString()} ANX earned!`, 'success');
     },
     onError: (error: any) => showNotification(error.message || 'Failed to claim reward', 'error'),
@@ -487,7 +473,7 @@ export default function Home() {
 
   const typedUser = user as User;
   const totalAds = typedUser?.adsWatched || 0;
-  const todayEarnings = Math.floor(parseFloat(userStats?.todayEarnings || typedUser?.dailyEarnings || "0"));
+  const todayEarnings = Math.floor(parseFloat(userStats?.todayEarnings || "0"));
   const createdAt = typedUser?.createdAt ? new Date(typedUser.createdAt) : null;
   const daysActive = createdAt ? Math.max(1, Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))) : 1;
 
@@ -503,46 +489,29 @@ export default function Home() {
     <Layout>
       <Header />
 
-      {/* Reward animation */}
-      <AnimatePresence>
-        {rewardPopup.visible && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 22 }}
-            className="fixed top-24 left-1/2 z-[100] -translate-x-1/2 px-5 py-2.5 rounded-2xl font-black text-sm text-black shadow-2xl pointer-events-none"
-            style={{ background: ACCENT, boxShadow: ACCENT_GLOW }}
-          >
-            +{rewardPopup.amount.toLocaleString()} ANX
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="max-w-md mx-auto px-4 pt-20 pb-28" style={{ background: '#000', minHeight: '100vh' }}>
+      <main className="max-w-md mx-auto px-4 pt-16 pb-24" style={{ background: '#000', minHeight: '100vh' }}>
 
         {/* ── Profile Section ─────────────────────────────────────── */}
-        <div className="flex flex-col items-center mb-4 mt-1">
+        <div className="flex flex-col items-center mb-3 mt-0">
           {/* Avatar */}
-          <div className="relative mb-2.5">
-            {/* Outer glow ring */}
+          <div className="relative mb-2">
             <div
               className="absolute inset-0 rounded-full"
               style={{
                 background: `conic-gradient(${ACCENT}, transparent, ${ACCENT}80, transparent, ${ACCENT})`,
                 padding: '2px',
                 borderRadius: '50%',
-                filter: 'blur(0px)',
                 boxShadow: `0 0 20px rgba(198,241,53,0.4), 0 0 40px rgba(198,241,53,0.15)`,
               }}
             />
             <div
-              className="relative w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
+              className="relative w-20 h-20 rounded-full overflow-hidden flex items-center justify-center cursor-pointer"
               style={{
                 border: `2px solid ${ACCENT}`,
                 background: '#111',
                 boxShadow: `0 0 0 3px rgba(198,241,53,0.15), ${ACCENT_GLOW}`,
               }}
+              onClick={() => { if (isAdmin) setLocation('/admin'); }}
             >
               {photoUrl ? (
                 <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -553,15 +522,14 @@ export default function Home() {
           </div>
 
           {/* Name */}
-          <h2 className="text-white text-lg font-black tracking-tight leading-tight">{displayName}</h2>
-          {/* Username – only if present */}
+          <h2 className="text-white text-base font-black tracking-tight leading-tight">{displayName}</h2>
           {tgUsername && (
-            <p className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: '#555' }}>@{tgUsername}</p>
+            <p className="text-[11px] font-semibold leading-tight mt-0.5" style={{ color: '#555' }}>@{tgUsername}</p>
           )}
         </div>
 
         {/* ── Stats Row ─────────────────────────────────────────────── */}
-        <div className="flex items-center mb-5">
+        <div className="flex items-center mb-4">
           {[
             { icon: <AdsIcon />, label: 'Total Ads', value: totalAds.toLocaleString() },
             { icon: <EarningsIcon />, label: 'Today', value: todayEarnings > 0 ? `${todayEarnings.toLocaleString()}` : '0' },
@@ -583,8 +551,8 @@ export default function Home() {
         </div>
 
         {/* ── Daily Login Reward ────────────────────────────────────── */}
-        <div className="rounded-2xl p-4 mb-4" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-2xl p-3.5 mb-3" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
+          <div className="flex items-center justify-between mb-2.5">
             <span className="text-white font-black text-sm">Daily Reward</span>
             <span
               className="text-[10px] font-black px-2 py-0.5 rounded-lg tracking-wider"
@@ -604,7 +572,7 @@ export default function Home() {
                   key={day}
                   onClick={isToday && !hasClaimed ? handleClaimStreak : undefined}
                   disabled={isClaimingStreak || isFuture || isClaimed || (isToday && hasClaimed)}
-                  className="flex flex-col items-center gap-1 py-2.5 rounded-xl transition-all"
+                  className="flex flex-col items-center gap-1 py-2 rounded-xl transition-all"
                   style={{
                     background: isToday
                       ? ACCENT_DIM
@@ -650,14 +618,14 @@ export default function Home() {
             })}
           </div>
           {hasClaimed && (
-            <p className="text-center text-[10px] mt-2.5" style={{ color: '#444' }}>
+            <p className="text-center text-[10px] mt-2" style={{ color: '#444' }}>
               Next claim: <span style={{ color: ACCENT }}>tomorrow</span>
             </p>
           )}
         </div>
 
         {/* ── Ad Watching Section ───────────────────────────────────── */}
-        <AdWatchingSection user={user as User} onReward={showRewardAnimation} />
+        <AdWatchingSection user={user as User} onReward={() => {}} />
 
       </main>
 
@@ -781,7 +749,7 @@ export default function Home() {
           {/* Friends */}
           <button
             onClick={() => setInviteOpen(true)}
-            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
+            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
           >
             <FriendsNavIcon />
             <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
@@ -792,7 +760,7 @@ export default function Home() {
           {/* Withdraw – center accent button */}
           <button
             onClick={() => setWithdrawPopupOpen(true)}
-            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 relative transition-colors active:bg-white/5"
+            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 relative transition-colors active:bg-white/5"
           >
             <div
               className="absolute -top-3 w-12 h-12 rounded-full flex items-center justify-center"
@@ -813,7 +781,7 @@ export default function Home() {
           {/* Menu */}
           <button
             onClick={() => setMenuOpen(true)}
-            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
+            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
           >
             <MenuNavIcon />
             <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
