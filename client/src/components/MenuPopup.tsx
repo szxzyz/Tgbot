@@ -3,8 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Receipt, ChevronRight, Shield, ArrowLeft, Clock, CheckCircle,
-  XCircle, Loader2, Trophy, Video, Link2, Eye, CheckSquare, Square,
-  X, Plus, Youtube, Instagram,
+  XCircle, Loader2, Trophy, Video, CheckSquare, Square,
+  Plus, Youtube, Instagram,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -72,7 +72,6 @@ function ProjectIcon() {
 
 export default function MenuPopup({ onClose }: MenuPopupProps) {
   const [view, setView] = useState<View>("main");
-
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [link, setLink] = useState("");
   const [selectedRange, setSelectedRange] = useState<string | null>(null);
@@ -101,8 +100,8 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
   }>({
     queryKey: ["/api/project-stats"],
     retry: false,
-    staleTime: 60000,
-    refetchInterval: 60000,
+    staleTime: 30000,
+    refetchInterval: 30000,
   });
 
   const telegramUser =
@@ -150,6 +149,14 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
     setSubmitted(false); setShowSubmitForm(false);
   };
 
+  const goBack = () => {
+    if (showSubmitForm) {
+      resetContestForm();
+    } else {
+      setView("main");
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     const s = status?.toLowerCase();
     if (s?.includes("approved") || s?.includes("success") || s?.includes("paid"))
@@ -163,8 +170,10 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
     const s = status?.toLowerCase();
     if (s?.includes("approved") || s?.includes("success") || s?.includes("paid")) return "text-green-400";
     if (s?.includes("reject") || s?.includes("failed")) return "text-red-400";
-    return `text-[${ACCENT}]`;
+    return "";
   };
+
+  const isSubView = view !== "main" || showSubmitForm;
 
   const viewTitle: Record<View, string> = {
     main: "Menu",
@@ -173,427 +182,395 @@ export default function MenuPopup({ onClose }: MenuPopupProps) {
     contest: "Contest",
   };
 
+  const currentTitle = showSubmitForm ? "Submit Content" : viewTitle[view];
+
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[200] flex items-end justify-center"
+        className="fixed inset-0 z-[200]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
-
         <motion.div
-          className="relative w-full max-w-md rounded-t-3xl overflow-hidden"
+          className="absolute inset-0 flex flex-col"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          style={{ maxHeight: "90vh", overflowY: "auto", background: "#0a0a0a", border: "1px solid #1e1e1e", borderBottom: "none" }}
+          transition={{ type: "spring", damping: 30, stiffness: 280 }}
+          style={{ background: "#000" }}
         >
-          <div className="flex justify-center pt-3 pb-0">
-            <div className="w-9 h-1 rounded-full" style={{ background: "#2a2a2a" }} />
-          </div>
-
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full"
-            style={{ background: "#1a1a1a" }}
-          >
-            <X size={14} className="text-white/50" />
-          </button>
-
           {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-3">
-            {view !== "main" && (
+          <div
+            className="flex items-center gap-3 px-4 pt-14 pb-4 flex-shrink-0"
+            style={{ borderBottom: "1px solid #111" }}
+          >
+            {isSubView ? (
               <button
-                onClick={() => { setView("main"); resetContestForm(); }}
-                className="w-7 h-7 flex items-center justify-center rounded-full"
-                style={{ background: "#1a1a1a" }}
+                onClick={goBack}
+                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+                style={{ background: "#111", border: "1px solid #1e1e1e" }}
+              >
+                <ArrowLeft className="w-4 h-4 text-white" />
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+                style={{ background: "#111", border: "1px solid #1e1e1e" }}
               >
                 <ArrowLeft className="w-4 h-4 text-white" />
               </button>
             )}
-            <h2 className="text-white font-black text-base">{viewTitle[view]}</h2>
+            <h1 className="text-white font-black text-base">{currentTitle}</h1>
           </div>
 
-          {/* ─── Main View ─── */}
-          {view === "main" && (
-            <div className="px-5 pb-6 space-y-3">
-              {/* Account Info */}
-              <div className="rounded-2xl p-4" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#444" }}>Account</p>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-                    style={{ border: `2px solid rgba(198,241,53,0.3)`, background: "#1a1a1a" }}
-                  >
-                    {photoUrl ? (
-                      <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-5 h-5 text-white/30" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-bold text-sm truncate">{displayName}</p>
-                    {username && <p className="text-[11px] mt-0.5" style={{ color: "#666" }}>@{username}</p>}
-                    {telegramId && <p className="text-[10px] mt-0.5 font-mono" style={{ color: "#444" }}>ID: {telegramId}</p>}
-                    {memberSince && (
-                      <p className="text-[10px] mt-0.5" style={{ color: "#444" }}>
-                        Member since: <span style={{ color: "#666" }}>{memberSince}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
 
-              {/* Project Statistics */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                <div className="px-4 pt-3 pb-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#444" }}>Project Statistics</p>
-                </div>
-                <div className="divide-y" style={{ borderColor: "#1a1a1a" }}>
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <UsersIcon />
-                      <span className="text-white/60 text-sm font-medium">Users</span>
-                    </div>
-                    <span className="text-white font-black text-sm">
-                      {projectStats?.totalUsers !== undefined ? projectStats.totalUsers.toLocaleString() : "—"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <OnlineIcon />
-                      <span className="text-white/60 text-sm font-medium">Online</span>
-                    </div>
-                    <span className="font-black text-sm" style={{ color: ACCENT }}>
-                      {projectStats?.onlineUsers !== undefined ? projectStats.onlineUsers.toLocaleString() : "—"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <WithdrawIcon />
-                      <span className="text-white/60 text-sm font-medium">Withdrawals</span>
-                    </div>
-                    <span className="text-white font-black text-sm">
-                      {projectStats?.totalWithdrawn !== undefined
-                        ? `${projectStats.totalWithdrawn.toLocaleString()} ANX`
-                        : "—"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <ProjectIcon />
-                      <span className="text-white/60 text-sm font-medium">Project Work</span>
-                    </div>
-                    <span className="text-white font-black text-sm">
-                      {projectStats?.projectDays !== undefined
-                        ? `${projectStats.projectDays} day${projectStats.projectDays !== 1 ? "s" : ""}`
-                        : "—"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contest */}
-              <button
-                onClick={() => setView("contest")}
-                className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                style={{ background: "#111", border: "1px solid #1e1e1e" }}
-              >
-                <div className="flex items-center gap-3">
-                  <Trophy className="w-5 h-5" style={{ color: ACCENT }} />
-                  <span className="text-white font-bold text-sm">Contest</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-white/20" />
-              </button>
-
-              {/* Transactions */}
-              <button
-                onClick={() => setView("transactions")}
-                className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                style={{ background: "#111", border: "1px solid #1e1e1e" }}
-              >
-                <div className="flex items-center gap-3">
-                  <Receipt className="w-5 h-5 text-green-400" />
-                  <span className="text-white font-bold text-sm">Transactions</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-white/20" />
-              </button>
-
-              {/* Legal Info */}
-              <button
-                onClick={() => setView("legal")}
-                className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                style={{ background: "#111", border: "1px solid #1e1e1e" }}
-              >
-                <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-purple-400" />
-                  <span className="text-white font-bold text-sm">Legal Info</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-white/20" />
-              </button>
-            </div>
-          )}
-
-          {/* ─── Transactions View ─── */}
-          {view === "transactions" && (
-            <div className="px-5 pb-6">
-              {txLoading ? (
-                <div className="flex items-center justify-center py-10">
-                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: ACCENT }} />
-                </div>
-              ) : withdrawals.length === 0 ? (
-                <div className="text-center py-10 text-white/30 text-sm">No transactions yet.</div>
-              ) : (
-                <div className="space-y-2">
-                  {withdrawals.map((w: any) => (
+            {/* ─── Main View ─── */}
+            {view === "main" && (
+              <div className="px-4 py-4 space-y-3">
+                {/* Account Info */}
+                <div className="rounded-2xl p-4" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#333" }}>Account</p>
+                  <div className="flex items-center gap-3">
                     <div
-                      key={w.id}
-                      className="rounded-xl p-3 flex items-center justify-between"
-                      style={{ background: "#111", border: "1px solid #1e1e1e" }}
+                      className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+                      style={{ border: `2px solid rgba(198,241,53,0.25)`, background: "#1a1a1a" }}
                     >
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(w.status)}
-                        <div>
-                          <p className="text-white text-xs font-bold">{w.method || "Withdrawal"}</p>
-                          <p className="text-white/40 text-[10px] mt-0.5">
-                            {w.createdAt ? format(new Date(w.createdAt), "dd MMM yyyy") : "—"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-white text-xs font-bold">{parseFloat(w.amount || "0").toLocaleString()} ANX</p>
-                        <p className={`text-[10px] font-semibold capitalize ${getStatusColor(w.status)}`}>{w.status}</p>
-                      </div>
+                      {photoUrl ? (
+                        <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-5 h-5 text-white/30" />
+                      )}
                     </div>
-                  ))}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate">{displayName}</p>
+                      {username && <p className="text-[11px] mt-0.5" style={{ color: "#555" }}>@{username}</p>}
+                      {telegramId && <p className="text-[10px] mt-0.5 font-mono" style={{ color: "#333" }}>ID: {telegramId}</p>}
+                      {memberSince && (
+                        <p className="text-[10px] mt-0.5" style={{ color: "#333" }}>
+                          Member since: <span style={{ color: "#555" }}>{memberSince}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* ─── Legal View ─── */}
-          {view === "legal" && (
-            <div className="px-5 pb-6 space-y-3 text-xs text-white/50 leading-relaxed">
-              {[
-                { title: "Terms of Use", text: "By using this app, you agree to our terms. Rewards are in ANX and are subject to availability. Rewards may change at any time without prior notice." },
-                { title: "Privacy Policy", text: "We collect only your Telegram user data (name, username, ID) to identify your account. We do not share your data with third parties. Your data is securely stored and used solely to operate the app." },
-                { title: "Disclaimer", text: "This app is not affiliated with Telegram. Withdrawals are subject to minimum balance requirements and admin review." },
-              ].map(({ title, text }) => (
-                <div key={title} className="rounded-2xl p-4" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                  <p className="text-white/70 font-bold mb-2">{title}</p>
-                  <p>{text}</p>
+                {/* Project Statistics */}
+                <div className="rounded-2xl overflow-hidden" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                  <div className="px-4 pt-3 pb-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#333" }}>Project Statistics</p>
+                  </div>
+                  <div className="divide-y" style={{ borderColor: "#131313" }}>
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <UsersIcon />
+                        <span className="text-white/60 text-sm font-medium">Users</span>
+                      </div>
+                      <span className="text-white font-black text-sm">
+                        {projectStats?.totalUsers !== undefined ? projectStats.totalUsers.toLocaleString() : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <OnlineIcon />
+                        <span className="text-white/60 text-sm font-medium">Online Now</span>
+                      </div>
+                      <span className="font-black text-sm" style={{ color: ACCENT }}>
+                        {projectStats?.onlineUsers !== undefined ? projectStats.onlineUsers.toLocaleString() : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <WithdrawIcon />
+                        <span className="text-white/60 text-sm font-medium">Total Withdrawals</span>
+                      </div>
+                      <span className="text-white font-black text-sm">
+                        {projectStats?.totalWithdrawn !== undefined
+                          ? `${projectStats.totalWithdrawn.toLocaleString()} ANX`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <ProjectIcon />
+                        <span className="text-white/60 text-sm font-medium">Project Age</span>
+                      </div>
+                      <span className="text-white font-black text-sm">
+                        {projectStats?.projectDays !== undefined
+                          ? `${projectStats.projectDays} day${projectStats.projectDays !== 1 ? "s" : ""}`
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* ─── Contest View ─── */}
-          {view === "contest" && !showSubmitForm && (
-            <div className="px-5 pb-6 space-y-4">
-              <div
-                className="relative rounded-2xl overflow-hidden p-4"
-                style={{ background: ACCENT_DIM, border: `1px solid rgba(198,241,53,0.2)` }}
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl" style={{ background: "rgba(198,241,53,0.1)" }} />
-                <div className="relative z-10">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                    style={{ background: "rgba(198,241,53,0.15)", border: "1px solid rgba(198,241,53,0.3)" }}
-                  >
+                {/* Contest */}
+                <button
+                  onClick={() => setView("contest")}
+                  className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
+                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                >
+                  <div className="flex items-center gap-3">
                     <Trophy className="w-5 h-5" style={{ color: ACCENT }} />
+                    <span className="text-white font-bold text-sm">Contest</span>
                   </div>
-                  <p className="text-white font-black text-sm leading-snug">
-                    Tell others about ANX, and get up to{" "}
-                    <span style={{ color: ACCENT }}>10,000,000 ANX</span> for each video.
-                  </p>
-                </div>
+                  <ChevronRight className="w-4 h-4 text-white/20" />
+                </button>
+
+                {/* Transactions */}
+                <button
+                  onClick={() => setView("transactions")}
+                  className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
+                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Receipt className="w-5 h-5 text-green-400" />
+                    <span className="text-white font-bold text-sm">Transactions</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/20" />
+                </button>
+
+                {/* Legal Info */}
+                <button
+                  onClick={() => setView("legal")}
+                  className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
+                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-purple-400" />
+                    <span className="text-white font-bold text-sm">Legal Info</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/20" />
+                </button>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#444" }}>Rules</p>
-
-                <div className="rounded-2xl p-3.5 space-y-2" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] flex-shrink-0" style={{ background: ACCENT_DIM, color: ACCENT }}>1</span>
-                    <p className="text-white font-bold text-xs">Create Content</p>
+            {/* ─── Transactions View ─── */}
+            {view === "transactions" && (
+              <div className="px-4 py-4">
+                {txLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: ACCENT }} />
                   </div>
-                  <p className="text-white/50 text-[11px] leading-relaxed pl-7">Make a fun video about ANX and post it on:</p>
-                  <div className="flex gap-1.5 flex-wrap pl-7">
-                    {[
-                      { Icon: Youtube, label: "YouTube Shorts", color: "red" },
-                      { Icon: Instagram, label: "Instagram Reels", color: "pink" },
-                      { Icon: Video, label: "TikTok", color: "cyan" },
-                    ].map(({ Icon, label, color }) => (
-                      <div key={label} className={`flex items-center gap-1 rounded-lg px-2 py-1 bg-${color}-500/10 border border-${color}-500/20`}>
-                        <Icon className={`w-3 h-3 text-${color}-400`} />
-                        <span className={`text-${color}-400 text-[10px] font-bold`}>{label}</span>
+                ) : withdrawals.length === 0 ? (
+                  <div className="text-center py-12 text-white/30 text-sm">No transactions yet.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {withdrawals.map((w: any) => (
+                      <div
+                        key={w.id}
+                        className="rounded-xl p-3 flex items-center justify-between"
+                        style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                      >
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(w.status)}
+                          <div>
+                            <p className="text-white text-xs font-bold">{w.method || "Withdrawal"}</p>
+                            <p className="text-white/40 text-[10px] mt-0.5">
+                              {w.createdAt ? format(new Date(w.createdAt), "dd MMM yyyy") : "—"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white text-xs font-bold">{parseFloat(w.amount || "0").toLocaleString()} ANX</p>
+                          <p className={`text-[10px] font-semibold capitalize ${getStatusColor(w.status)}`}>{w.status}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                )}
+              </div>
+            )}
 
+            {/* ─── Legal View ─── */}
+            {view === "legal" && (
+              <div className="px-4 py-4 space-y-3">
                 {[
-                  { num: 2, title: "Include Your ID or Invite Link", desc: "Attach your ID or Invite Link in the video description." },
-                  { num: 3, title: "Send the Link", desc: "Once your video reaches 100+ views, send us the link." },
-                  { num: 4, title: "Earn Rewards", desc: `The more views your video gets, the bigger the reward. Up to 10,000,000 ANX per video.` },
-                ].map(({ num, title, desc }) => (
-                  <div key={num} className="rounded-2xl p-3.5" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                    <div className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] flex-shrink-0 mt-0.5" style={{ background: ACCENT_DIM, color: ACCENT }}>{num}</span>
-                      <div>
-                        <p className="text-white font-bold text-xs">{title}</p>
-                        <p className="text-white/50 text-[11px] leading-relaxed mt-1">{desc}</p>
-                      </div>
-                    </div>
+                  { title: "Terms of Use", text: "By using this app, you agree to our terms. Rewards are in ANX and are subject to availability. Rewards may change at any time without prior notice." },
+                  { title: "Privacy Policy", text: "We collect only your Telegram user data (name, username, ID) to identify your account. We do not share your data with third parties. Your data is securely stored and used solely to operate the app." },
+                  { title: "Disclaimer", text: "This app is not affiliated with Telegram. Withdrawals are subject to minimum balance requirements and admin review." },
+                ].map(({ title, text }) => (
+                  <div key={title} className="rounded-2xl p-4" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                    <p className="text-white/80 font-bold mb-2 text-sm">{title}</p>
+                    <p className="text-xs text-white/40 leading-relaxed">{text}</p>
                   </div>
                 ))}
               </div>
+            )}
 
-              <div className="rounded-2xl overflow-hidden" style={{ background: "#111", border: "1px solid #1e1e1e" }}>
-                <div className="px-3.5 pt-3 pb-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1" style={{ color: "#444" }}>
-                    <Eye className="w-3 h-3" /> Reward Table
-                  </p>
+            {/* ─── Contest View ─── */}
+            {view === "contest" && !showSubmitForm && (
+              <div className="px-4 py-4 space-y-4">
+                <div
+                  className="relative rounded-2xl overflow-hidden p-4"
+                  style={{ background: ACCENT_DIM, border: `1px solid rgba(198,241,53,0.18)` }}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl" style={{ background: "rgba(198,241,53,0.08)" }} />
+                  <div className="relative z-10">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                      style={{ background: "rgba(198,241,53,0.12)", border: "1px solid rgba(198,241,53,0.25)" }}
+                    >
+                      <Trophy className="w-5 h-5" style={{ color: ACCENT }} />
+                    </div>
+                    <p className="text-white font-black text-sm leading-snug">
+                      Tell others about ANX, and get up to{" "}
+                      <span style={{ color: ACCENT }}>10,000,000 ANX</span> for each video.
+                    </p>
+                  </div>
                 </div>
-                <div className="divide-y" style={{ borderColor: "#1a1a1a" }}>
-                  {VIEW_RANGES.map((r) => (
-                    <div key={r.value} className="flex items-center justify-between px-3.5 py-2">
-                      <span className="text-white/60 text-[11px]">{r.label}</span>
-                      <span className="font-bold text-[11px]" style={{ color: ACCENT }}>{r.reward}</span>
+
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#333" }}>Rules</p>
+
+                  <div className="rounded-2xl p-3.5 space-y-2" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] flex-shrink-0" style={{ background: ACCENT_DIM, color: ACCENT }}>1</span>
+                      <p className="text-white font-bold text-xs">Create Content</p>
+                    </div>
+                    <p className="text-white/50 text-[11px] leading-relaxed pl-7">Make a fun video about ANX and post it on:</p>
+                    <div className="flex gap-1.5 flex-wrap pl-7">
+                      <div className="flex items-center gap-1 rounded-lg px-2 py-1" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                        <Youtube className="w-3 h-3 text-red-400" />
+                        <span className="text-red-400 text-[10px] font-bold">YouTube Shorts</span>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-lg px-2 py-1" style={{ background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.2)" }}>
+                        <Instagram className="w-3 h-3 text-pink-400" />
+                        <span className="text-pink-400 text-[10px] font-bold">Instagram Reels</span>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-lg px-2 py-1" style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}>
+                        <Video className="w-3 h-3 text-cyan-400" />
+                        <span className="text-cyan-400 text-[10px] font-bold">TikTok</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {[
+                    { num: 2, title: "Include Your ID or Invite Link", desc: "Attach your ID or Invite Link in the video description." },
+                    { num: 3, title: "Send the Link", desc: "Once your video reaches 100+ views, send us the link." },
+                    { num: 4, title: "Earn Rewards", desc: "The more views your video gets, the bigger the reward. Up to 10,000,000 ANX per video." },
+                  ].map(({ num, title, desc }) => (
+                    <div key={num} className="rounded-2xl p-3.5" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                      <div className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] flex-shrink-0 mt-0.5" style={{ background: ACCENT_DIM, color: ACCENT }}>{num}</span>
+                        <div>
+                          <p className="text-white font-bold text-xs">{title}</p>
+                          <p className="text-white/50 text-[11px] leading-relaxed mt-1">{desc}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+
+                <button
+                  onClick={() => setShowSubmitForm(true)}
+                  className="w-full flex items-center justify-center gap-2 font-black text-sm text-black rounded-2xl py-3.5 transition-all active:scale-[0.98]"
+                  style={{ background: ACCENT, boxShadow: "0 0 20px rgba(198,241,53,0.2)" }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Content and Earn
+                </button>
+                <div className="h-4" />
               </div>
+            )}
 
-              <button
-                onClick={() => setShowSubmitForm(true)}
-                className="w-full flex items-center justify-center gap-2 font-black text-sm text-black rounded-2xl py-3.5 transition-all active:scale-[0.98]"
-                style={{ background: ACCENT, boxShadow: "0 0 20px rgba(198,241,53,0.25)" }}
-              >
-                <Plus className="w-4 h-4" />
-                Add Content and Earn
-              </button>
-              <div className="h-2" />
-            </div>
-          )}
-
-          {/* ─── Contest Submission Form ─── */}
-          {view === "contest" && showSubmitForm && (
-            <div className="px-5 pb-6 space-y-4">
-              <button
-                onClick={resetContestForm}
-                className="flex items-center gap-1.5 text-white/40 text-xs"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back
-              </button>
-
-              {submitted ? (
-                <div className="flex flex-col items-center gap-4 text-center py-8">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(198,241,53,0.1)", border: "1px solid rgba(198,241,53,0.3)" }}>
-                    <Trophy className="w-8 h-8" style={{ color: ACCENT }} />
-                  </div>
-                  <div>
-                    <p className="text-white font-black text-base">Submitted!</p>
-                    <p className="text-white/50 text-xs mt-1 leading-relaxed">Your submission has been sent for review. You'll be notified once it's verified.</p>
-                  </div>
-                  <button
-                    onClick={() => { resetContestForm(); setView("main"); }}
-                    className="font-black text-sm text-black rounded-2xl px-8 py-3"
-                    style={{ background: ACCENT }}
-                  >
-                    Done
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-wide block mb-1.5" style={{ color: "#555" }}>
-                      Link to your content
-                    </label>
-                    <input
-                      type="url"
-                      value={link}
-                      onChange={(e) => setLink(e.target.value)}
-                      placeholder="Paste your video link here"
-                      className="w-full rounded-xl px-3.5 py-2.5 text-white text-sm placeholder-white/20 focus:outline-none transition-colors"
-                      style={{ background: "#111", border: "1px solid #222" }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-wide block mb-1.5" style={{ color: "#555" }}>
-                      Number of Views
-                    </label>
-                    <div className="space-y-1.5">
-                      {VIEW_RANGES.map((r) => (
-                        <button
-                          key={r.value}
-                          onClick={() => setSelectedRange(r.value)}
-                          className="w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 border transition-all"
-                          style={{
-                            background: selectedRange === r.value ? ACCENT_DIM : "#111",
-                            border: `1px solid ${selectedRange === r.value ? "rgba(198,241,53,0.3)" : "#1e1e1e"}`,
-                          }}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                              style={{ borderColor: selectedRange === r.value ? ACCENT : "#333", background: selectedRange === r.value ? ACCENT : "transparent" }}
-                            >
-                              {selectedRange === r.value && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
-                            </div>
-                            <span className="text-white/80 text-xs">{r.label}</span>
-                          </div>
-                          <span className="font-bold text-xs" style={{ color: ACCENT }}>{r.reward}</span>
-                        </button>
-                      ))}
+            {/* ─── Contest Submission Form ─── */}
+            {view === "contest" && showSubmitForm && (
+              <div className="px-4 py-4 space-y-4">
+                {submitted ? (
+                  <div className="flex flex-col items-center gap-4 text-center py-12">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(198,241,53,0.1)", border: "1px solid rgba(198,241,53,0.3)" }}>
+                      <Trophy className="w-8 h-8" style={{ color: ACCENT }} />
                     </div>
+                    <div>
+                      <p className="text-white font-black text-base">Submitted!</p>
+                      <p className="text-white/50 text-xs mt-1 leading-relaxed">Your submission has been sent for review. You'll be notified once it's verified.</p>
+                    </div>
+                    <button
+                      onClick={resetContestForm}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm text-black"
+                      style={{ background: ACCENT }}
+                    >
+                      Submit Another
+                    </button>
                   </div>
-
-                  <div className="space-y-2.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-wide block" style={{ color: "#555" }}>
-                      Confirmation
-                    </label>
-                    {[
-                      { state: check1, set: setCheck1, label: "I confirm that the number of views is correct" },
-                      { state: check2, set: setCheck2, label: "My invite link or my ID (Telegram ID) is indicated under the video" },
-                      { state: check3, set: setCheck3, label: "I understand that if I provide incorrect data, I will lose access to this functionality" },
-                    ].map((item, i) => (
-                      <button
-                        key={i}
-                        onClick={() => item.set(!item.state)}
-                        className="w-full flex items-start gap-2.5 text-left"
-                      >
-                        {item.state ? (
-                          <CheckSquare className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: ACCENT }} />
-                        ) : (
-                          <Square className="w-4 h-4 flex-shrink-0 mt-0.5 text-white/20" />
-                        )}
-                        <span className="text-white/60 text-[11px] leading-relaxed">{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={handleContestSubmit}
-                    disabled={!canSubmit || contestMutation.isPending}
-                    className="w-full rounded-2xl py-3.5 font-black text-sm text-black transition-all active:scale-[0.98] disabled:opacity-40"
-                    style={{ background: ACCENT }}
-                  >
-                    {contestMutation.isPending ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Submitting...
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#333" }}>Video Link</p>
+                        <input
+                          value={link}
+                          onChange={e => setLink(e.target.value)}
+                          placeholder="https://youtube.com/shorts/..."
+                          className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none"
+                          style={{ background: "#0d0d0d", border: "1px solid #1e1e1e" }}
+                        />
                       </div>
-                    ) : "Submit"}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#333" }}>View Range</p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {VIEW_RANGES.map(r => (
+                            <button
+                              key={r.value}
+                              onClick={() => setSelectedRange(r.value)}
+                              className="rounded-xl px-3 py-2 text-left transition-all"
+                              style={{
+                                background: selectedRange === r.value ? ACCENT_DIM : "#0d0d0d",
+                                border: `1px solid ${selectedRange === r.value ? "rgba(198,241,53,0.3)" : "#1e1e1e"}`,
+                              }}
+                            >
+                              <p className="text-[10px] font-bold" style={{ color: selectedRange === r.value ? ACCENT : "#555" }}>{r.label}</p>
+                              <p className="text-[10px] font-black" style={{ color: selectedRange === r.value ? ACCENT : "#444" }}>{r.reward}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl p-4 space-y-3" style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#333" }}>Confirm</p>
+                        {[
+                          { state: check1, setState: setCheck1, label: "The video is about ANX" },
+                          { state: check2, setState: setCheck2, label: "My ID/invite link is in the description" },
+                          { state: check3, setState: setCheck3, label: "The video has 100+ views" },
+                        ].map(({ state, setState, label }) => (
+                          <button
+                            key={label}
+                            onClick={() => setState(!state)}
+                            className="w-full flex items-center gap-3 text-left"
+                          >
+                            {state
+                              ? <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: ACCENT }} />
+                              : <Square className="w-4 h-4 flex-shrink-0 text-white/20" />
+                            }
+                            <span className="text-xs font-medium" style={{ color: state ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.35)" }}>{label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleContestSubmit}
+                      disabled={!canSubmit || contestMutation.isPending}
+                      className="w-full flex items-center justify-center gap-2 font-black text-sm text-black rounded-2xl py-3.5 transition-all active:scale-[0.98] disabled:opacity-40"
+                      style={{ background: ACCENT }}
+                    >
+                      {contestMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Review"}
+                    </button>
+                    {contestMutation.isError && (
+                      <p className="text-red-400 text-xs text-center">{(contestMutation.error as Error).message}</p>
+                    )}
+                    <div className="h-4" />
+                  </>
+                )}
+              </div>
+            )}
+
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
