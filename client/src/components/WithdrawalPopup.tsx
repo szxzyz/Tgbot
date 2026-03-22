@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { showNotification } from "@/components/AppNotification";
-import { Loader2, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const ACCENT = "#C6F135";
+const ACCENT_DIM = "rgba(198,241,53,0.10)";
+const ACCENT_GLOW = "0 0 24px rgba(198,241,53,0.30)";
 
 interface WithdrawalPopupProps {
   open: boolean;
@@ -20,12 +21,12 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
   const { data: appSettings } = useQuery<any>({
-    queryKey: ['/api/app-settings'],
+    queryKey: ["/api/app-settings"],
     staleTime: 30000,
   });
 
   const { data: user } = useQuery<any>({
-    queryKey: ['/api/auth/user'],
+    queryKey: ["/api/auth/user"],
     staleTime: 0,
   });
 
@@ -38,7 +39,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       const res = await apiRequest("POST", "/api/withdrawals", {
         address: withdrawAddress,
         amount: parseFloat(withdrawAmount).toString(),
-        method: "ANX"
+        method: "ANX",
       });
       return res.json();
     },
@@ -53,9 +54,9 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     onError: (error: any) => {
       let message = "Withdrawal failed";
       try {
-        if (typeof error.message === 'string') {
+        if (typeof error.message === "string") {
           const trimmed = error.message.trim();
-          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             const parsed = JSON.parse(trimmed);
             if (parsed.message) message = parsed.message;
           } else {
@@ -90,10 +91,12 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     withdrawMutation.mutate();
   };
 
-  const toReceive = withdrawAmount ? Math.max(0, parseFloat(withdrawAmount) - networkFee).toFixed(0) : "0";
+  const amount = parseFloat(withdrawAmount) || 0;
+  const toReceive = Math.max(0, amount - networkFee);
 
-  const handleMaxClick = () => {
-    setWithdrawAmount(anxBalance.toString());
+  const setPercent = (pct: number) => {
+    const val = Math.floor(anxBalance * pct);
+    setWithdrawAmount(val.toString());
   };
 
   return (
@@ -106,134 +109,208 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
           exit={{ opacity: 0 }}
         >
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => onOpenChange(false)}
           />
 
           <motion.div
-            className="relative w-full max-w-md bg-[#0f0f0f] border border-white/10 rounded-t-2xl overflow-hidden"
+            className="relative w-full max-w-md rounded-t-3xl overflow-hidden"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            style={{ maxHeight: "90vh", overflowY: "auto" }}
+            style={{
+              maxHeight: "92vh",
+              overflowY: "auto",
+              background: "#080808",
+              borderTop: "1px solid #1e1e1e",
+            }}
           >
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+            {/* Handle */}
+            <div className="flex justify-center pt-3">
+              <div className="w-10 h-1 rounded-full" style={{ background: "#252525" }} />
             </div>
 
-            <div className="flex items-center px-5 py-3 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <Download className="w-5 h-5 text-yellow-400" />
-                <h2 className="text-white font-bold text-base">ANX Withdrawal</h2>
+            {/* Balance Hero */}
+            <div className="px-4 pt-5 pb-0">
+              <div
+                className="rounded-2xl p-5 relative overflow-hidden"
+                style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+              >
+                {/* glow */}
+                <div
+                  className="absolute -bottom-6 -right-6 w-28 h-28 rounded-full"
+                  style={{ background: "rgba(198,241,53,0.07)", filter: "blur(24px)" }}
+                />
+                <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#3a3a3a" }}>
+                  Your Balance
+                </p>
+                <div className="flex items-end gap-2 mb-3">
+                  <span className="text-white font-black tabular-nums" style={{ fontSize: "38px", lineHeight: 1 }}>
+                    {anxBalance.toLocaleString()}
+                  </span>
+                  <span className="font-black text-base mb-1" style={{ color: ACCENT }}>ANX</span>
+                </div>
+                {/* Rate pill */}
+                <div
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                  style={{ background: ACCENT_DIM, border: "1px solid rgba(198,241,53,0.15)" }}
+                >
+                  <span className="text-[10px] font-bold" style={{ color: "#666" }}>1,000,000 ANX</span>
+                  <span className="text-[10px]" style={{ color: "#333" }}>→</span>
+                  <span className="text-[10px] font-black" style={{ color: ACCENT }}>1 TON</span>
+                </div>
               </div>
             </div>
 
-            <div className="px-5 py-4 space-y-4">
-              <div className="bg-white/5 rounded-xl px-4 py-3 flex justify-between items-center">
-                <span className="text-white/50 text-xs font-semibold">Available Balance</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-yellow-400 text-sm font-black tabular-nums">
-                    {anxBalance.toLocaleString()} ANX
-                  </span>
+            <div className="px-4 pt-5 pb-8 space-y-4">
+
+              {/* Quick amount selector */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: "#3a3a3a" }}>
+                  Amount
+                </p>
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {[25, 50, 75, 100].map((pct) => (
+                    <button
+                      key={pct}
+                      onClick={() => setPercent(pct / 100)}
+                      className="h-9 rounded-xl text-xs font-black transition-all active:scale-95"
+                      style={{
+                        background: withdrawAmount === String(Math.floor(anxBalance * pct / 100))
+                          ? ACCENT_DIM
+                          : "#0f0f0f",
+                        border: withdrawAmount === String(Math.floor(anxBalance * pct / 100))
+                          ? "1px solid rgba(198,241,53,0.3)"
+                          : "1px solid #1a1a1a",
+                        color: withdrawAmount === String(Math.floor(anxBalance * pct / 100))
+                          ? ACCENT
+                          : "#555",
+                      }}
+                    >
+                      {pct === 100 ? "MAX" : `${pct}%`}
+                    </button>
+                  ))}
+                </div>
+                <div
+                  className="flex items-center rounded-xl overflow-hidden"
+                  style={{ border: `1px solid ${withdrawAmount ? "rgba(198,241,53,0.25)" : "#1a1a1a"}`, background: "#0f0f0f" }}
+                >
+                  <input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="flex-1 h-12 px-4 bg-transparent text-white font-bold text-sm outline-none tabular-nums"
+                    style={{ color: "#fff" }}
+                  />
+                  <span className="pr-4 font-black text-sm" style={{ color: ACCENT }}>ANX</span>
                 </div>
               </div>
 
-              <div className="bg-[#F5C542]/5 border border-[#F5C542]/20 rounded-xl px-4 py-2.5 flex items-center justify-center gap-2">
-                <span className="text-[#F5C542] text-[10px] font-black">💎 1,000,000 ANX = 1 TON</span>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                    Destination address
-                  </Label>
+              {/* Address */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#3a3a3a" }}>
+                    Withdraw To
+                  </p>
                   <a
                     href="https://links.speed.app/referral?referral_code=CH265L"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-yellow-400 text-[10px] font-semibold hover:text-yellow-300 transition-colors underline underline-offset-2"
+                    className="text-[10px] font-bold transition-opacity hover:opacity-70"
+                    style={{ color: ACCENT }}
                     onClick={(e) => {
-                      if (window.Telegram?.WebApp) {
+                      if ((window as any).Telegram?.WebApp) {
                         e.preventDefault();
-                        window.Telegram.WebApp.openLink("https://links.speed.app/referral?referral_code=CH265L");
+                        (window as any).Telegram.WebApp.openLink("https://links.speed.app/referral?referral_code=CH265L");
                       }
                     }}
                   >
-                    Don't have an address yet?
+                    Get speed.app address →
                   </a>
                 </div>
-                <Input
-                  placeholder="lightning"
-                  value={withdrawAddress}
-                  onChange={(e) => setWithdrawAddress(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white h-11 rounded-xl focus:ring-yellow-400/30 font-medium text-sm placeholder:text-white/20 placeholder:text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                  Amount (ANX)
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white h-11 rounded-xl font-bold text-sm pr-16 placeholder:text-white/20"
-                  />
-                  <button
-                    onClick={handleMaxClick}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-[10px] font-black rounded-lg transition-all uppercase"
-                  >
-                    Max
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white/5 rounded-xl p-4 space-y-2.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-white/50 text-xs font-semibold">Withdraw Fee</span>
-                  <span className="text-white text-xs font-bold">{networkFee} ANX</span>
-                </div>
-                <div className="h-[1px] bg-white/5" />
-                <div className="flex justify-between items-center">
-                  <span className="text-white/50 text-xs font-semibold">Min. Withdrawal</span>
-                  <span className="text-white text-xs font-bold">{minWithdraw} ANX</span>
-                </div>
-                <div className="h-[1px] bg-white/5" />
-                <div className="flex justify-between items-center">
-                  <span className="text-white/50 text-xs font-semibold">You Receive</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-white text-sm font-black tabular-nums">
-                      {parseInt(toReceive).toLocaleString()} ANX
-                    </span>
+                <div
+                  className="flex items-center rounded-xl overflow-hidden"
+                  style={{ border: `1px solid ${withdrawAddress ? "rgba(198,241,53,0.25)" : "#1a1a1a"}`, background: "#0f0f0f" }}
+                >
+                  <div className="pl-4 pr-2 flex-shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill={withdrawAddress ? ACCENT : "#333"} />
+                    </svg>
                   </div>
+                  <input
+                    placeholder="yourname@speed.app"
+                    value={withdrawAddress}
+                    onChange={(e) => setWithdrawAddress(e.target.value)}
+                    className="flex-1 h-12 pr-4 bg-transparent text-sm font-medium outline-none"
+                    style={{ color: "#fff" }}
+                  />
                 </div>
               </div>
 
-              <Button
-                className="w-full h-11 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 border-0"
+              {/* Receipt summary */}
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{ border: "1px solid #1a1a1a" }}
+              >
+                <div className="px-4 py-3 flex justify-between items-center" style={{ background: "#0d0d0d" }}>
+                  <span className="text-xs" style={{ color: "#444" }}>You send</span>
+                  <span className="text-xs font-bold text-white tabular-nums">{amount > 0 ? amount.toLocaleString() : "—"} ANX</span>
+                </div>
+                <div className="h-px" style={{ background: "#111" }} />
+                <div className="px-4 py-3 flex justify-between items-center" style={{ background: "#0d0d0d" }}>
+                  <span className="text-xs" style={{ color: "#444" }}>Network fee</span>
+                  <span className="text-xs font-bold text-white">− {networkFee} ANX</span>
+                </div>
+                <div className="h-px" style={{ background: "#111" }} />
+                <div className="px-4 py-3 flex justify-between items-center" style={{ background: "#0d0d0d" }}>
+                  <span className="text-xs" style={{ color: "#444" }}>Min. withdrawal</span>
+                  <span className="text-xs font-bold text-white">{minWithdraw} ANX</span>
+                </div>
+                <div
+                  className="px-4 py-4 flex justify-between items-center"
+                  style={{ background: ACCENT_DIM, borderTop: "1px solid rgba(198,241,53,0.12)" }}
+                >
+                  <span className="text-sm font-black" style={{ color: "rgba(198,241,53,0.6)" }}>You receive</span>
+                  <span className="text-xl font-black tabular-nums" style={{ color: ACCENT }}>
+                    {toReceive > 0 ? toReceive.toLocaleString() : "0"} <span className="text-sm">ANX</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
                 onClick={handleWithdrawClick}
                 disabled={withdrawMutation.isPending}
+                className="w-full rounded-2xl font-black text-sm uppercase tracking-widest text-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  height: "54px",
+                  background: ACCENT,
+                  boxShadow: withdrawMutation.isPending ? "none" : ACCENT_GLOW,
+                }}
               >
                 {withdrawMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  "Withdraw ANX"
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2v14M5 9l7 7 7-7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M3 20h18" stroke="#000" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                    Withdraw ANX
+                  </>
                 )}
-              </Button>
+              </button>
 
               <button
                 onClick={() => onOpenChange(false)}
-                className="w-full text-white/40 text-xs font-bold uppercase tracking-wider py-2 hover:text-white/60 transition-colors"
+                className="w-full text-center text-[11px] font-bold uppercase tracking-widest py-1 transition-opacity hover:opacity-60"
+                style={{ color: "#2a2a2a" }}
               >
-                Close
+                Cancel
               </button>
             </div>
-
-            <div className="h-4" />
           </motion.div>
         </motion.div>
       )}

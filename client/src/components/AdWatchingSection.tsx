@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield } from "lucide-react";
+import { Clock, Shield } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
@@ -15,6 +15,14 @@ const ACCENT = "#C6F135";
 interface AdWatchingSectionProps {
   user: any;
   onReward?: (amount: number) => void;
+}
+
+function PlayIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+  );
 }
 
 export default function AdWatchingSection({ user, onReward }: AdWatchingSectionProps) {
@@ -44,7 +52,6 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       return response.json();
     },
     onSuccess: async (data: any) => {
-      // Directly update balance from backend response — reliable and instant
       if (data?.newBalance !== undefined) {
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
@@ -61,13 +68,13 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       if (error.status === 429) {
         const limit = error.limit || appSettings?.dailyAdLimit || 50;
-        showNotification(`Daily ad limit reached (${limit} ads/day)`, "error");
+        showNotification(`Daily limit reached (${limit}/day)`, "error");
       } else if (error.status === 401 || error.status === 403) {
-        showNotification("Authentication error. Please refresh the page.", "error");
+        showNotification("Auth error. Please refresh.", "error");
       } else if (error.message) {
         showNotification(`Error: ${error.message}`, "error");
       } else {
-        showNotification("Network error. Check your connection and try again.", "error");
+        showNotification("Network error. Try again.", "error");
       }
     },
   });
@@ -102,7 +109,7 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       const monetagResult = await showMonetagAd();
 
       if (monetagResult.unavailable) {
-        showNotification("Ad not available. Please open in Telegram app.", "error");
+        showNotification("Open in Telegram app to watch ads.", "error");
         return;
       }
       if (!monetagResult.watchedFully) {
@@ -146,13 +153,18 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
   const dailyLimit = appSettings?.dailyAdLimit || 50;
   const rewardPerAd = appSettings?.rewardPerAd || 2;
   const limitReached = adsWatchedToday >= dailyLimit;
+  const progress = Math.min((adsWatchedToday / dailyLimit) * 100, 100);
 
   return (
-    <div className="rounded-2xl overflow-hidden mb-3" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
-      <div className="px-4 pt-4 pb-4">
-        <div className="mb-4">
-          <h2 className="text-white font-black text-base leading-tight mb-0.5">Viewing ads</h2>
-          <p className="text-[12px]" style={{ color: '#8E8E93' }}>
+    <div
+      className="rounded-2xl overflow-hidden mb-3"
+      style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}
+    >
+      <div className="px-4 pt-5 pb-4">
+        {/* Center-aligned title and subtitle */}
+        <div className="text-center mb-5">
+          <h2 className="text-white font-black text-base leading-tight mb-1">Viewing ads</h2>
+          <p className="text-[12px]" style={{ color: '#6b6b6b' }}>
             Get ANX for watching commercials
           </p>
         </div>
@@ -160,13 +172,13 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
         <button
           onClick={handleStartEarning}
           disabled={isShowingAds || limitReached}
-          className="w-full h-13 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mb-3"
+          className="w-full rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mb-4"
           style={{
             height: '52px',
             background: isShowingAds || limitReached ? 'rgba(255,255,255,0.05)' : ACCENT,
-            color: isShowingAds || limitReached ? '#888' : '#000',
+            color: isShowingAds || limitReached ? '#555' : '#000',
             border: 'none',
-            boxShadow: !isShowingAds && !limitReached ? `0 0 16px rgba(198,241,53,0.25)` : 'none',
+            boxShadow: !isShowingAds && !limitReached ? `0 0 20px rgba(198,241,53,0.28)` : 'none',
           }}
           data-testid="button-watch-ad"
         >
@@ -186,7 +198,7 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
             <span>Daily Limit Reached</span>
           ) : (
             <>
-              <Play size={16} fill="currentColor" />
+              <PlayIcon />
               <span>Start watching</span>
             </>
           )}
@@ -207,7 +219,7 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
         <div
           className="h-full transition-all"
           style={{
-            width: `${Math.min((adsWatchedToday / dailyLimit) * 100, 100)}%`,
+            width: `${progress}%`,
             background: limitReached ? '#555' : ACCENT,
           }}
         />
