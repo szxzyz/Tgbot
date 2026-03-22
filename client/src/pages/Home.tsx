@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
 import InvitePopup from "@/components/InvitePopup";
 import { useLanguage } from "@/hooks/useLanguage";
-import { User as UserIcon, Check, Loader2, CalendarCheck, Users, Send, ExternalLink, Rocket, Clock } from "lucide-react";
+import { Check, Loader2, CalendarCheck, Users, Send, ExternalLink, Rocket, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showNotification } from "@/components/AppNotification";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,8 +20,8 @@ import WithdrawalPopup from "@/components/WithdrawalPopup";
 import MenuPopup from "@/components/MenuPopup";
 
 const ACCENT = "#C6F135";
-const ACCENT_DIM = "rgba(198,241,53,0.12)";
-const ACCENT_GLOW = "0 0 12px rgba(198,241,53,0.4)";
+const ACCENT_DIM = "rgba(198,241,53,0.10)";
+const ACCENT_GLOW = "0 0 16px rgba(198,241,53,0.35)";
 
 interface UnifiedTask {
   id: string;
@@ -77,6 +77,85 @@ function getDayStatus(displayIdx: number, todayDisplayIdx: number, currentStreak
     return daysPast <= (currentStreak - (hasClaimed ? 1 : 0)) ? 'claimed' : 'unclaimed';
   }
   return 'future';
+}
+
+// ─── Custom Nav Icons ───────────────────────────────────────────────
+
+function FriendsNavIcon({ active }: { active?: boolean }) {
+  const color = active ? ACCENT : "#666";
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="9" cy="7" r="3.5" stroke={color} strokeWidth="1.7" />
+      <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M19 10v6M22 13h-6" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function WithdrawNavIcon({ active }: { active?: boolean }) {
+  const color = active ? ACCENT : "#666";
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="6" width="20" height="14" rx="3" stroke={color} strokeWidth="1.7" />
+      <path d="M2 10h20" stroke={color} strokeWidth="1.7" />
+      <circle cx="7" cy="15" r="1.5" fill={color} />
+      <path d="M15 15h4" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MenuNavIcon({ active }: { active?: boolean }) {
+  const color = active ? ACCENT : "#666";
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="5" width="18" height="2.5" rx="1.25" fill={color} />
+      <rect x="3" y="11" width="12" height="2.5" rx="1.25" fill={color} />
+      <rect x="3" y="17" width="15" height="2.5" rx="1.25" fill={color} />
+    </svg>
+  );
+}
+
+// ─── Stats Row Icons ─────────────────────────────────────────────────
+
+function AdsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="5" width="20" height="14" rx="3" stroke={ACCENT} strokeWidth="1.6" />
+      <path d="M10 9.5l5 2.5-5 2.5V9.5z" fill={ACCENT} />
+      <path d="M2 9h2M20 9h2" stroke={ACCENT} strokeWidth="1.4" strokeLinecap="round" opacity="0.4" />
+    </svg>
+  );
+}
+
+function EarningsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={ACCENT} strokeWidth="1.8" />
+      <path d="M12 7v1.5M12 15.5V17M9.5 14.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5c0-1.5-1.5-2-2.5-2.5S9.5 11 9.5 9.5C9.5 8.12 10.62 7 12 7s2.5 1.12 2.5 2.5" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function DaysIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="4" width="18" height="17" rx="3" stroke={ACCENT} strokeWidth="1.8" />
+      <path d="M3 9h18" stroke={ACCENT} strokeWidth="1.8" />
+      <path d="M8 2v4M16 2v4" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="12" cy="14" r="1.5" fill={ACCENT} />
+    </svg>
+  );
+}
+
+// ─── Profile Icon ─────────────────────────────────────────────────────
+
+function DefaultAvatar() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="18" r="8" fill={ACCENT} opacity="0.8" />
+      <path d="M6 42c0-8.84 7.16-16 16-16s16 7.16 16 16" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
+    </svg>
+  );
 }
 
 export default function Home() {
@@ -190,7 +269,6 @@ export default function Home() {
       setHasClaimed(true);
       const rewardAmount = parseFloat(data.rewardEarned || '0');
       const earned = rewardAmount > 0 ? Math.round(rewardAmount) : 10;
-      // Sync balance immediately from backend
       queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
         ...old,
         balance: String(parseFloat(old?.balance || '0') + earned),
@@ -199,7 +277,6 @@ export default function Home() {
       }));
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       showRewardAnimation(earned);
-      showNotification(`+${earned.toLocaleString()} ANX added!`, "success");
     },
     onError: (error: any) => {
       if (error.alreadyClaimedToday) {
@@ -241,7 +318,7 @@ export default function Home() {
     },
     onSuccess: (_data, taskId) => {
       setClickedTasks(prev => new Set(prev).add(taskId));
-      showNotification("Task started! Click the claim button to earn your reward.", "info");
+      showNotification("Task started! Click claim to earn your reward.", "info");
     },
     onError: (error: any) => showNotification(error.message || 'Failed to start task', 'error'),
   });
@@ -402,7 +479,7 @@ export default function Home() {
               <div key={delay} className="w-2.5 h-2.5 rounded-full animate-bounce" style={{ background: ACCENT, animationDelay: `${delay}ms` }} />
             ))}
           </div>
-          <div className="text-white/60 text-sm font-medium">Loading ANX...</div>
+          <div className="text-white/40 text-sm font-medium tracking-widest uppercase">Loading...</div>
         </div>
       </div>
     );
@@ -425,69 +502,96 @@ export default function Home() {
   return (
     <Layout>
       <Header />
+
       {/* Reward animation */}
       <AnimatePresence>
         {rewardPopup.visible && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 20, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 22 }}
             className="fixed top-24 left-1/2 z-[100] -translate-x-1/2 px-5 py-2.5 rounded-2xl font-black text-sm text-black shadow-2xl pointer-events-none"
             style={{ background: ACCENT, boxShadow: ACCENT_GLOW }}
           >
-            +{rewardPopup.amount.toLocaleString()} ANX added
+            +{rewardPopup.amount.toLocaleString()} ANX
           </motion.div>
         )}
       </AnimatePresence>
 
       <main className="max-w-md mx-auto px-4 pt-20 pb-28" style={{ background: '#000', minHeight: '100vh' }}>
 
-        {/* Profile Section */}
-        <div className="flex flex-col items-center mb-6">
-          <div className="relative mb-3">
+        {/* ── Profile Section ─────────────────────────────────────── */}
+        <div className="flex flex-col items-center mb-4 mt-1">
+          {/* Avatar */}
+          <div className="relative mb-2.5">
+            {/* Outer glow ring */}
             <div
-              className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center border-2"
-              style={{ borderColor: ACCENT, boxShadow: ACCENT_GLOW }}
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: `conic-gradient(${ACCENT}, transparent, ${ACCENT}80, transparent, ${ACCENT})`,
+                padding: '2px',
+                borderRadius: '50%',
+                filter: 'blur(0px)',
+                boxShadow: `0 0 20px rgba(198,241,53,0.4), 0 0 40px rgba(198,241,53,0.15)`,
+              }}
+            />
+            <div
+              className="relative w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
+              style={{
+                border: `2px solid ${ACCENT}`,
+                background: '#111',
+                boxShadow: `0 0 0 3px rgba(198,241,53,0.15), ${ACCENT_GLOW}`,
+              }}
             >
               {photoUrl ? (
                 <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center" style={{ background: '#1a1a1a' }}>
-                  <UserIcon className="w-9 h-9" style={{ color: ACCENT }} />
-                </div>
+                <DefaultAvatar />
               )}
             </div>
           </div>
-          <h2 className="text-white text-lg font-black tracking-tight leading-tight mb-0.5">{displayName}</h2>
+
+          {/* Name */}
+          <h2 className="text-white text-lg font-black tracking-tight leading-tight">{displayName}</h2>
+          {/* Username – only if present */}
           {tgUsername && (
-            <p className="text-sm font-medium mb-1" style={{ color: '#8E8E93' }}>@{tgUsername}</p>
+            <p className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: '#555' }}>@{tgUsername}</p>
           )}
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-2.5 mb-5">
+        {/* ── Stats Row ─────────────────────────────────────────────── */}
+        <div className="flex items-center mb-5">
           {[
-            { label: 'Total Ads', value: totalAds.toLocaleString() },
-            { label: 'Today', value: todayEarnings > 0 ? `${todayEarnings.toLocaleString()}` : '0' },
-            { label: 'Days', value: daysActive.toString() },
-          ].map(({ label, value }) => (
-            <div
-              key={label}
-              className="flex flex-col items-center justify-center py-3 px-2 rounded-2xl"
-              style={{ background: '#111', border: '1px solid #1e1e1e' }}
-            >
-              <span className="text-white text-xl font-black tabular-nums leading-none mb-1">{value}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#555' }}>{label}</span>
+            { icon: <AdsIcon />, label: 'Total Ads', value: totalAds.toLocaleString() },
+            { icon: <EarningsIcon />, label: 'Today', value: todayEarnings > 0 ? `${todayEarnings.toLocaleString()}` : '0' },
+            { icon: <DaysIcon />, label: 'Days', value: daysActive.toString() },
+          ].map(({ icon, label, value }, i) => (
+            <div key={label} className="flex-1 flex items-center">
+              {i > 0 && (
+                <div className="w-px h-8 flex-shrink-0" style={{ background: '#1e1e1e' }} />
+              )}
+              <div className="flex-1 flex flex-col items-center gap-0.5 py-1">
+                <div className="flex items-center gap-1.5">
+                  {icon}
+                  <span className="text-white text-xl font-black tabular-nums leading-none" style={{ letterSpacing: '-0.5px' }}>{value}</span>
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#3e3e3e' }}>{label}</span>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Daily Login Reward */}
+        {/* ── Daily Login Reward ────────────────────────────────────── */}
         <div className="rounded-2xl p-4 mb-4" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-white font-black text-sm">Daily Login Reward</span>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg" style={{ background: ACCENT_DIM, color: ACCENT }}>10 ANX / day</span>
+            <span className="text-white font-black text-sm">Daily Reward</span>
+            <span
+              className="text-[10px] font-black px-2 py-0.5 rounded-lg tracking-wider"
+              style={{ background: ACCENT_DIM, color: ACCENT, border: `1px solid rgba(198,241,53,0.2)` }}
+            >
+              10 ANX / day
+            </span>
           </div>
           <div className="grid grid-cols-7 gap-1">
             {WEEK_DAYS.map((day, i) => {
@@ -500,16 +604,32 @@ export default function Home() {
                   key={day}
                   onClick={isToday && !hasClaimed ? handleClaimStreak : undefined}
                   disabled={isClaimingStreak || isFuture || isClaimed || (isToday && hasClaimed)}
-                  className="flex flex-col items-center gap-1 py-2 rounded-xl transition-all"
+                  className="flex flex-col items-center gap-1 py-2.5 rounded-xl transition-all"
                   style={{
-                    background: isToday ? ACCENT_DIM : isClaimed ? 'rgba(255,255,255,0.03)' : 'transparent',
-                    border: isToday ? `1.5px solid ${ACCENT}` : isClaimed ? '1.5px solid rgba(255,255,255,0.06)' : '1.5px solid transparent',
-                    boxShadow: isToday ? ACCENT_GLOW : 'none',
+                    background: isToday
+                      ? ACCENT_DIM
+                      : isClaimed
+                      ? 'rgba(198,241,53,0.04)'
+                      : 'rgba(255,255,255,0.02)',
+                    border: isToday
+                      ? `1.5px solid ${ACCENT}60`
+                      : isClaimed
+                      ? `1.5px solid rgba(198,241,53,0.15)`
+                      : '1.5px solid rgba(255,255,255,0.04)',
+                    boxShadow: isToday ? `0 0 10px rgba(198,241,53,0.2)` : 'none',
                   }}
                 >
-                  <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isToday ? ACCENT : isClaimed ? '#4a4a4a' : '#333' }}>{day}</span>
+                  <span
+                    className="text-[9px] font-black uppercase tracking-wider"
+                    style={{ color: isToday ? ACCENT : isClaimed ? '#4a5a3a' : '#2e2e2e' }}
+                  >
+                    {day}
+                  </span>
                   {isClaimed ? (
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ background: ACCENT }}>
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center"
+                      style={{ background: ACCENT }}
+                    >
                       <Check className="w-2.5 h-2.5 text-black" strokeWidth={3} />
                     </div>
                   ) : isToday ? (
@@ -520,49 +640,49 @@ export default function Home() {
                         <Check className="w-2.5 h-2.5 text-black" strokeWidth={3} />
                       </div>
                     ) : (
-                      <div className="w-3 h-3 rounded-full" style={{ background: ACCENT }} />
+                      <div className="w-3 h-3 rounded-full" style={{ background: ACCENT, boxShadow: `0 0 6px ${ACCENT}` }} />
                     )
                   ) : (
-                    <div className="w-3 h-3 rounded-full" style={{ background: '#222' }} />
+                    <div className="w-3 h-3 rounded-full" style={{ background: '#1e1e1e' }} />
                   )}
                 </button>
               );
             })}
           </div>
           {hasClaimed && (
-            <p className="text-center text-[10px] mt-2" style={{ color: '#555' }}>
-              Next claim in <span style={{ color: ACCENT }}>{timeUntilNextClaim}</span>
+            <p className="text-center text-[10px] mt-2.5" style={{ color: '#444' }}>
+              Next claim: <span style={{ color: ACCENT }}>tomorrow</span>
             </p>
           )}
         </div>
 
-        {/* Ad Watching Section */}
+        {/* ── Ad Watching Section ───────────────────────────────────── */}
         <AdWatchingSection user={user as User} onReward={showRewardAnimation} />
 
       </main>
 
-      {/* Daily Tasks popup */}
+      {/* ── Daily Tasks Popup ─────────────────────────────────────── */}
       {boosterPopupOpen && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a] relative">
+          <div className="rounded-2xl p-6 w-full max-w-sm relative" style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}>
             <div className="flex items-center justify-center gap-2 mb-6">
               <CalendarCheck className="w-5 h-5" style={{ color: ACCENT }} />
               <h2 className="text-lg font-bold text-white">Daily Tasks</h2>
             </div>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
               {/* Share with Friends */}
-              <div className="flex items-center justify-between bg-[#1a1a1a] rounded-lg p-3">
+              <div className="flex items-center justify-between rounded-xl p-3" style={{ background: '#111' }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-4 h-4" style={{ color: ACCENT }} />
                     <p className="text-white text-sm font-medium">Share with Friends</p>
                   </div>
-                  <p className="text-xs text-gray-400 ml-6">Reward: <span className="text-white font-medium">{appSettings?.referralRewardAXN || '5'} ANX</span></p>
+                  <p className="text-xs ml-6" style={{ color: '#555' }}>Reward: <span className="text-white font-medium">{appSettings?.referralRewardAXN || '5'} ANX</span></p>
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.shareStory?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-green-400" />
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}>
+                      <Check className="w-4 h-4" style={{ color: ACCENT }} />
                     </div>
                   ) : shareWithFriendsStep === 'ready' || shareWithFriendsStep === 'claiming' ? (
                     <Button onClick={handleClaimShareWithFriends} disabled={shareWithFriendsMutation.isPending}
@@ -576,17 +696,17 @@ export default function Home() {
                 </div>
               </div>
               {/* Daily Check-in */}
-              <div className="flex items-center justify-between bg-[#1a1a1a] rounded-lg p-3">
+              <div className="flex items-center justify-between rounded-xl p-3" style={{ background: '#111' }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <CalendarCheck className="w-4 h-4" style={{ color: ACCENT }} />
                     <p className="text-white text-sm font-medium">Daily Check-in</p>
                   </div>
-                  <p className="text-xs text-gray-400 ml-6">Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} ANX</span></p>
+                  <p className="text-xs ml-6" style={{ color: '#555' }}>Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} ANX</span></p>
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.dailyCheckin?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg bg-green-500/20 flex items-center justify-center"><Check className="w-4 h-4 text-green-400" /></div>
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
                   ) : dailyCheckinStep === 'ads' ? (
                     <Button disabled className="h-8 w-20 text-xs font-bold rounded-lg bg-purple-600 text-white">Watching...</Button>
                   ) : dailyCheckinStep === 'ready' || dailyCheckinStep === 'claiming' ? (
@@ -600,20 +720,20 @@ export default function Home() {
                 </div>
               </div>
               {/* Check for Updates */}
-              <div className="flex items-center justify-between bg-[#1a1a1a] rounded-lg p-3">
+              <div className="flex items-center justify-between rounded-xl p-3" style={{ background: '#111' }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <Rocket className="w-4 h-4" style={{ color: ACCENT }} />
                     <p className="text-white text-sm font-medium">Check for Updates</p>
                   </div>
-                  <p className="text-xs text-gray-400 ml-6">Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} ANX</span></p>
+                  <p className="text-xs ml-6" style={{ color: '#555' }}>Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} ANX</span></p>
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.checkForUpdates?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg bg-green-500/20 flex items-center justify-center"><Check className="w-4 h-4 text-green-400" /></div>
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
                   ) : checkForUpdatesStep === 'opened' ? (
-                    <div className="h-8 w-20 flex items-center justify-center gap-1 bg-[#1a1a1a] border border-[#4cd3ff]/30 rounded-lg">
-                      <Clock size={12} className="text-[#4cd3ff]" />
+                    <div className="h-8 w-20 flex items-center justify-center gap-1 rounded-lg" style={{ background: '#1a1a1a', border: '1px solid rgba(198,241,53,0.2)' }}>
+                      <Clock size={12} style={{ color: ACCENT }} />
                       <span className="text-white text-xs font-bold">{checkForUpdatesCountdown}s</span>
                     </div>
                   ) : checkForUpdatesStep === 'ready' || checkForUpdatesStep === 'claiming' ? (
@@ -627,8 +747,13 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <Button onClick={() => setBoosterPopupOpen(false)}
-              className="w-full mt-6 bg-[#1a1a1a] hover:bg-[#222] text-white border border-[#333] rounded-xl">Close</Button>
+            <Button
+              onClick={() => setBoosterPopupOpen(false)}
+              className="w-full mt-6 font-bold rounded-xl border text-white"
+              style={{ background: '#111', border: '1px solid #222' }}
+            >
+              Close
+            </Button>
           </div>
         </div>
       )}
@@ -643,23 +768,57 @@ export default function Home() {
         tonBalance={Math.floor(parseFloat(typedUser?.balance || "0"))}
       />
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50" style={{ background: '#0a0a0a', borderTop: '1px solid #1a1a1a' }}>
+      {/* ── Bottom Navigation ─────────────────────────────────────── */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50"
+        style={{
+          background: 'rgba(6,6,6,0.97)',
+          borderTop: '1px solid #1a1a1a',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
         <div className="max-w-md mx-auto flex">
-          <button onClick={() => setInviteOpen(true)}
-            className="flex-1 py-4 flex flex-col items-center justify-center gap-0.5 text-white hover:bg-white/5 active:bg-white/10 transition-colors">
-            <span className="text-lg leading-none">🤝</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider">Friends</span>
+          {/* Friends */}
+          <button
+            onClick={() => setInviteOpen(true)}
+            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
+          >
+            <FriendsNavIcon />
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
+              Friends
+            </span>
           </button>
-          <button onClick={() => setWithdrawPopupOpen(true)}
-            className="flex-1 py-4 flex flex-col items-center justify-center gap-0.5 text-white hover:bg-white/5 active:bg-white/10 transition-colors">
-            <span className="text-lg leading-none">💰</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider">Withdraw</span>
+
+          {/* Withdraw – center accent button */}
+          <button
+            onClick={() => setWithdrawPopupOpen(true)}
+            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 relative transition-colors active:bg-white/5"
+          >
+            <div
+              className="absolute -top-3 w-12 h-12 rounded-full flex items-center justify-center"
+              style={{
+                background: '#0a0a0a',
+                border: `2px solid ${ACCENT}`,
+                boxShadow: `0 0 16px rgba(198,241,53,0.35), 0 -4px 20px rgba(198,241,53,0.1)`,
+              }}
+            >
+              <WithdrawNavIcon active />
+            </div>
+            <div className="h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: ACCENT }}>
+              Withdraw
+            </span>
           </button>
-          <button onClick={() => setMenuOpen(true)}
-            className="flex-1 py-4 flex flex-col items-center justify-center gap-0.5 text-white hover:bg-white/5 active:bg-white/10 transition-colors">
-            <span className="text-lg leading-none">☰</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider">Menu</span>
+
+          {/* Menu */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="flex-1 py-3.5 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
+          >
+            <MenuNavIcon />
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
+              Menu
+            </span>
           </button>
         </div>
       </div>
