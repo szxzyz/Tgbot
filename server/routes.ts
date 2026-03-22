@@ -1635,6 +1635,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Spotlight leaderboard - top users by ads watched
+  app.get('/api/spotlight', async (req: any, res) => {
+    try {
+      const topUsers = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          username: users.username,
+          adsWatched: users.adsWatched,
+          balance: users.balance,
+        })
+        .from(users)
+        .where(eq(users.banned, false))
+        .orderBy(desc(users.adsWatched))
+        .limit(10);
+
+      res.json({
+        success: true,
+        users: topUsers.map((u, i) => ({ ...u, rank: i + 1 })),
+      });
+    } catch (error) {
+      console.error("Error fetching spotlight:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch spotlight data" });
+    }
+  });
+
   // Ad watching endpoint - configurable daily limit and reward amount
   app.post('/api/ads/watch', authenticateTelegram, async (req: any, res) => {
     try {
