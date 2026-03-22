@@ -22,6 +22,7 @@ const Home = lazy(() => import("@/pages/Home"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
+const Spotlight = lazy(() => import("@/pages/Spotlight"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const ACCENT = "#C6F135";
@@ -140,6 +141,7 @@ function Router() {
         <Route path="/create-task" component={CreateTask} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/country-controls" component={CountryControls} />
+        <Route path="/spotlight" component={Spotlight} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
