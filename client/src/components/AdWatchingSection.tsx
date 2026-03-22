@@ -65,7 +65,6 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
     },
     onError: (error: any) => {
       sessionRewardedRef.current = false;
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       if (error.status === 429) {
         const limit = error.limit || appSettings?.dailyAdLimit || 50;
         showNotification(`Daily limit reached (${limit}/day)`, "error");
@@ -79,23 +78,23 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
     },
   });
 
-  const showMonetagAd = (): Promise<{ success: boolean; watchedFully: boolean; unavailable: boolean }> => {
+  const showMonetagAd = (): Promise<{ watched: boolean; unavailable: boolean }> => {
     return new Promise((resolve) => {
-      if (typeof window.show_9368336 === 'function') {
-        monetagStartTimeRef.current = Date.now();
-        window.show_9368336()
-          .then(() => {
-            const watchDuration = Date.now() - monetagStartTimeRef.current;
-            resolve({ success: true, watchedFully: watchDuration >= 3000, unavailable: false });
-          })
-          .catch((error) => {
-            console.error('Monetag ad error:', error);
-            const watchDuration = Date.now() - monetagStartTimeRef.current;
-            resolve({ success: false, watchedFully: watchDuration >= 3000, unavailable: false });
-          });
-      } else {
-        resolve({ success: false, watchedFully: false, unavailable: true });
+      if (typeof window.show_9368336 !== 'function') {
+        resolve({ watched: false, unavailable: true });
+        return;
       }
+      monetagStartTimeRef.current = Date.now();
+      window.show_9368336()
+        .then(() => {
+          // Promise resolved — ad shown successfully
+          resolve({ watched: true, unavailable: false });
+        })
+        .catch(() => {
+          // Promise rejected — check if user actually watched (≥3s means they saw the ad)
+          const duration = Date.now() - monetagStartTimeRef.current;
+          resolve({ watched: duration >= 3000, unavailable: false });
+        });
     });
   };
 
@@ -106,23 +105,19 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
 
     try {
       setCurrentAdStep('monetag');
-      const monetagResult = await showMonetagAd();
+      const result = await showMonetagAd();
 
-      if (monetagResult.unavailable) {
+      if (result.unavailable) {
         showNotification("Open in Telegram app to watch ads.", "error");
         return;
       }
-      if (!monetagResult.watchedFully) {
+      if (!result.watched) {
         showNotification("Watch the full ad to earn ANX.", "error");
-        return;
-      }
-      if (!monetagResult.success) {
-        showNotification("Ad failed. Please try again.", "error");
         return;
       }
 
       setCurrentAdStep('verifying');
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       if (!sessionRewardedRef.current) {
         sessionRewardedRef.current = true;
@@ -136,16 +131,15 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
         }));
 
         onReward?.(rewardAmount);
-        showNotification(`+${rewardAmount} ANX added!`, "success");
+        showNotification(`+${rewardAmount} ANX earned!`, "success");
+
         watchAdMutation.mutate('monetag');
       }
-    } catch (error) {
-      console.error('Ad watching error:', error);
+    } catch {
       showNotification("Error playing ad. Try again.", "error");
     } finally {
       setCurrentAdStep('idle');
       setIsShowingAds(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
   };
 
@@ -161,7 +155,6 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}
     >
       <div className="px-4 pt-5 pb-4">
-        {/* Center-aligned title and subtitle */}
         <div className="text-center mb-5">
           <h2 className="text-white font-black text-base leading-tight mb-1">Viewing ads</h2>
           <p className="text-[12px]" style={{ color: '#6b6b6b' }}>
@@ -214,10 +207,9 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="h-1 w-full" style={{ background: '#111' }}>
         <div
-          className="h-full transition-all"
+          className="h-full transition-all duration-500"
           style={{
             width: `${progress}%`,
             background: limitReached ? '#555' : ACCENT,
