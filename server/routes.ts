@@ -1569,7 +1569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskRewardPerClick = channelTaskRewardAXN_val / 10000; // Legacy format for compatibility
       
       const dailyAdLimit = parseInt(getSetting('daily_ad_limit', '50'));
-      const rewardPerAd = parseInt(getSetting('reward_per_ad', '1000'));
+      const rewardPerAd = parseInt(getSetting('reward_per_ad', '2'));
       const seasonBroadcastActive = getSetting('season_broadcast_active', 'false') === 'true';
       const affiliateCommission = parseInt(getSetting('affiliate_commission', '10'));
       const walletChangeFeeAXN = parseInt(getSetting('wallet_change_fee_axn', '5000'));
@@ -1816,15 +1816,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("   Error details:", error instanceof Error ? error.message : String(error));
       console.error("   Stack trace:", error instanceof Error ? error.stack : 'N/A');
       
-      // Return success anyway to prevent error notification from showing
-      // The user watched the ad, so we should acknowledge it
-      const adRewardAXN = Math.round(parseFloat("0.00010000") * 10000000);
-      res.json({ 
-        success: true, 
-        rewardAXN: adRewardAXN,
-        newBalance: "0",
-        adsWatchedToday: 0,
-        warning: "Reward processing encountered an issue but was acknowledged"
+      // Return error so client does not show false reward notification
+      res.status(500).json({ 
+        success: false, 
+        message: "Reward processing failed. Please try again."
       });
     }
   });
