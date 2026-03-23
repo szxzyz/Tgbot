@@ -3,12 +3,13 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Header from "@/components/Header";
 import AdWatchingSection from "@/components/AdWatchingSection";
+import BottomNav from "@/components/BottomNav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import InvitePopup from "@/components/InvitePopup";
+import AboutPopup from "@/components/AboutPopup";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Check, Loader2, CalendarCheck, Users, Send, ExternalLink, Rocket, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -79,38 +80,6 @@ function getDayStatus(displayIdx: number, todayDisplayIdx: number, currentStreak
   return 'future';
 }
 
-function FriendsNavIcon({ active }: { active?: boolean }) {
-  const color = active ? ACCENT : "#666";
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="9" cy="7" r="3.5" stroke={color} strokeWidth="1.7" />
-      <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M19 10v6M22 13h-6" stroke={color} strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function WithdrawNavIcon({ active }: { active?: boolean }) {
-  const color = active ? ACCENT : "#666";
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="6" width="20" height="14" rx="3" stroke={color} strokeWidth="1.7" />
-      <path d="M2 10h20" stroke={color} strokeWidth="1.7" />
-      <circle cx="7" cy="15" r="1.5" fill={color} />
-      <path d="M15 15h4" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SpotlightNavIcon({ active }: { active?: boolean }) {
-  const color = active ? ACCENT : "#666";
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke={color} strokeWidth="1.7" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function AdsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -159,7 +128,7 @@ export default function Home() {
 
   const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [inviteOpen, setInviteOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
@@ -493,7 +462,15 @@ export default function Home() {
     <Layout>
       <Header onMenuClick={() => setMenuOpen(true)} />
 
-      <main className="max-w-md mx-auto px-4 pt-16 pb-24" style={{ background: '#000', minHeight: '100vh' }}>
+      <main
+        className="w-full mx-auto px-4 pb-24"
+        style={{
+          background: '#000',
+          minHeight: '100dvh',
+          maxWidth: '480px',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
+        }}
+      >
 
         {/* ── Profile Section ─────────────────────────────────────── */}
         <div className="flex flex-col items-center mb-3 mt-0">
@@ -731,8 +708,13 @@ export default function Home() {
       )}
 
       {settingsOpen && <SettingsPopup onClose={() => setSettingsOpen(false)} />}
-      {inviteOpen && <InvitePopup onClose={() => setInviteOpen(false)} />}
-      {menuOpen && <MenuPopup onClose={() => setMenuOpen(false)} />}
+      {aboutOpen && <AboutPopup onClose={() => setAboutOpen(false)} />}
+      {menuOpen && (
+        <MenuPopup
+          onClose={() => setMenuOpen(false)}
+          onInviteClick={() => { setMenuOpen(false); }}
+        />
+      )}
 
       <WithdrawalPopup
         open={withdrawPopupOpen}
@@ -740,60 +722,10 @@ export default function Home() {
         tonBalance={Math.floor(parseFloat(typedUser?.balance || "0"))}
       />
 
-      {/* ── Bottom Navigation ─────────────────────────────────────── */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50"
-        style={{
-          background: 'rgba(6,6,6,0.97)',
-          borderTop: '1px solid #1a1a1a',
-          backdropFilter: 'blur(16px)',
-        }}
-      >
-        <div className="max-w-md mx-auto flex">
-          {/* Friends */}
-          <button
-            onClick={() => setInviteOpen(true)}
-            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
-          >
-            <FriendsNavIcon />
-            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
-              Friends
-            </span>
-          </button>
-
-          {/* Withdraw – center accent button */}
-          <button
-            onClick={() => setWithdrawPopupOpen(true)}
-            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 relative transition-colors active:bg-white/5"
-          >
-            <div
-              className="absolute -top-3 w-12 h-12 rounded-full flex items-center justify-center"
-              style={{
-                background: '#0a0a0a',
-                border: `2px solid ${ACCENT}`,
-                boxShadow: `0 0 16px rgba(198,241,53,0.35), 0 -4px 20px rgba(198,241,53,0.1)`,
-              }}
-            >
-              <WithdrawNavIcon active />
-            </div>
-            <div className="h-6" />
-            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: ACCENT }}>
-              Withdraw
-            </span>
-          </button>
-
-          {/* Spotlight */}
-          <button
-            onClick={() => setLocation('/spotlight')}
-            className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
-          >
-            <SpotlightNavIcon />
-            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
-              Spotlight
-            </span>
-          </button>
-        </div>
-      </div>
+      <BottomNav
+        onWithdrawClick={() => setWithdrawPopupOpen(true)}
+        onFriendsClick={() => setAboutOpen(true)}
+      />
     </Layout>
   );
 }

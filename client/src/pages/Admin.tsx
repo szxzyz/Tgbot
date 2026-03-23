@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdmin } from "@/hooks/useAdmin";
 import Layout from "@/components/Layout";
+import BottomNav from "@/components/BottomNav";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -152,13 +153,10 @@ export default function AdminPage() {
 
   return (
     <Layout>
-      <main className="min-h-screen bg-[#0a0a0a] text-white pb-20">
+      <main className="min-h-screen bg-[#0a0a0a] text-white pb-28">
         {/* Header */}
         <div className="sticky top-0 z-30 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setLocation("/")} className="h-8 w-8 p-0">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
             <div className="flex items-center gap-1.5">
               <Crown className="w-4 h-4 text-amber-400" />
               <span className="font-bold text-sm">Admin Panel</span>
@@ -201,6 +199,7 @@ export default function AdminPage() {
           {activeTab === "settings" && <SettingsSection />}
         </div>
       </main>
+      <BottomNav />
     </Layout>
   );
 }
