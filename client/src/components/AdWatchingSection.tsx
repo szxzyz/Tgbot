@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Clock, Shield } from "lucide-react";
+import { Clock, Shield, CheckCircle } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
@@ -25,11 +25,13 @@ function PlayIcon() {
   );
 }
 
+type AdStep = 'idle' | 'playing' | 'crediting' | 'credited';
+
 export default function AdWatchingSection({ user, onReward }: AdWatchingSectionProps) {
   const queryClient = useQueryClient();
-  const [isShowingAds, setIsShowingAds] = useState(false);
-  const [currentAdStep, setCurrentAdStep] = useState<'idle' | 'monetag' | 'adsgram' | 'verifying'>('idle');
-  const sessionRewardedRef = useRef(false);
+  const [adStep, setAdStep] = useState<AdStep>('idle');
+  const [lastReward, setLastReward] = useState<number>(0);
+  const isProcessingRef = useRef(false);
   const monetagStartTimeRef = useRef<number>(0);
 
   const { data: appSettings } = useQuery({
@@ -52,23 +54,38 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       return response.json();
     },
     onSuccess: (data: any) => {
-      const reward = data.rewardAXN ?? (appSettings?.rewardPerAd || 2);
-      showNotification(`+${reward} ANX earned!`, "success");
-      onReward?.(reward);
+      // Use exact server-returned reward - never rely on client-side guess
+      const reward = typeof data.rewardAXN === 'number' ? data.rewardAXN : parseInt(String(data.rewardAXN || '0'), 10);
+      setLastReward(reward);
+      setAdStep('credited');
 
+      // Update cache with server values
       if (data?.newBalance !== undefined) {
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
           balance: String(data.newBalance),
-          adsWatchedToday: data.adsWatchedToday ?? ((old?.adsWatchedToday || 0) + 1),
+          adsWatchedToday: typeof data.adsWatchedToday === 'number'
+            ? data.adsWatchedToday
+            : (old?.adsWatchedToday || 0) + 1,
           adsWatched: (old?.adsWatched || 0) + 1,
         }));
       }
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
+
+      // Show notification
+      showNotification(`+${reward} ANX added!`, "success");
+      onReward?.(reward);
+
+      // Return to idle after 2 seconds so user can watch another ad
+      setTimeout(() => {
+        setAdStep('idle');
+        isProcessingRef.current = false;
+      }, 2000);
     },
     onError: (error: any) => {
-      sessionRewardedRef.current = false;
+      isProcessingRef.current = false;
+      setAdStep('idle');
       if (error.status === 429) {
         const limit = error.limit || appSettings?.dailyAdLimit || 50;
         showNotification(`Daily limit reached (${limit}/day)`, "error");
@@ -82,7 +99,7 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
     },
   });
 
-  const showMonetagAd = (): Promise<{ watched: boolean; unavailable: boolean }> => {
+  const showMonetagAd = useCallback((): Promise<{ watched: boolean; unavailable: boolean }> => {
     return new Promise((resolve) => {
       if (typeof window.show_9368336 !== 'function') {
         resolve({ watched: false, unavailable: true });
@@ -98,46 +115,64 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
           resolve({ watched: duration >= 3000, unavailable: false });
         });
     });
-  };
+  }, []);
 
-  const handleStartEarning = async () => {
-    if (isShowingAds) return;
-    setIsShowingAds(true);
-    sessionRewardedRef.current = false;
+  const handleStartEarning = useCallback(async () => {
+    if (isProcessingRef.current) return;
+    if (adStep !== 'idle') return;
+    isProcessingRef.current = true;
+    setAdStep('playing');
 
     try {
-      setCurrentAdStep('monetag');
       const result = await showMonetagAd();
 
       if (result.unavailable) {
         showNotification("Open in Telegram app to watch ads.", "error");
+        setAdStep('idle');
+        isProcessingRef.current = false;
         return;
       }
       if (!result.watched) {
         showNotification("Watch the full ad to earn ANX.", "error");
+        setAdStep('idle');
+        isProcessingRef.current = false;
         return;
       }
 
-      setCurrentAdStep('verifying');
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      if (!sessionRewardedRef.current) {
-        sessionRewardedRef.current = true;
-        watchAdMutation.mutate('monetag');
-      }
+      // Ad was watched - now credit immediately
+      setAdStep('crediting');
+      watchAdMutation.mutate('monetag');
     } catch {
       showNotification("Error playing ad. Try again.", "error");
-    } finally {
-      setCurrentAdStep('idle');
-      setIsShowingAds(false);
+      setAdStep('idle');
+      isProcessingRef.current = false;
     }
-  };
+  }, [adStep, showMonetagAd, watchAdMutation]);
 
   const adsWatchedToday = user?.adsWatchedToday || 0;
   const dailyLimit = appSettings?.dailyAdLimit || 50;
   const rewardPerAd = appSettings?.rewardPerAd || 2;
   const limitReached = adsWatchedToday >= dailyLimit;
   const progress = Math.min((adsWatchedToday / dailyLimit) * 100, 100);
+  const isActive = adStep !== 'idle';
+
+  const buttonLabel = () => {
+    switch (adStep) {
+      case 'playing': return 'Playing Ad...';
+      case 'crediting': return 'Crediting reward...';
+      case 'credited': return `+${lastReward} ANX added`;
+      default: return limitReached ? 'Daily Limit Reached' : 'Start watching';
+    }
+  };
+
+  const buttonIcon = () => {
+    switch (adStep) {
+      case 'playing': return <Clock size={16} className="animate-spin" />;
+      case 'crediting': return <Shield size={16} className="animate-pulse text-green-400" />;
+      case 'credited': return <CheckCircle size={16} className="text-green-400" />;
+      default: return !limitReached ? <PlayIcon /> : null;
+    }
+  };
 
   return (
     <div
@@ -154,37 +189,27 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
 
         <button
           onClick={handleStartEarning}
-          disabled={isShowingAds || limitReached}
+          disabled={isActive || limitReached}
           className="w-full rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mb-4"
           style={{
             height: '52px',
-            background: isShowingAds || limitReached ? 'rgba(255,255,255,0.05)' : ACCENT,
-            color: isShowingAds || limitReached ? '#555' : '#000',
-            border: 'none',
-            boxShadow: !isShowingAds && !limitReached ? `0 0 20px rgba(198,241,53,0.28)` : 'none',
+            background: adStep === 'credited'
+              ? 'rgba(34,197,94,0.12)'
+              : isActive || limitReached
+                ? 'rgba(255,255,255,0.05)'
+                : ACCENT,
+            color: adStep === 'credited'
+              ? '#22c55e'
+              : isActive || limitReached
+                ? '#555'
+                : '#000',
+            border: adStep === 'credited' ? '1px solid rgba(34,197,94,0.3)' : 'none',
+            boxShadow: !isActive && !limitReached ? `0 0 20px rgba(198,241,53,0.28)` : 'none',
           }}
           data-testid="button-watch-ad"
         >
-          {isShowingAds ? (
-            <>
-              {currentAdStep === 'verifying' ? (
-                <Shield size={16} className="animate-pulse text-green-400" />
-              ) : (
-                <Clock size={16} className="animate-spin" />
-              )}
-              <span>
-                {currentAdStep === 'monetag' ? 'Playing Ad...' :
-                  currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
-              </span>
-            </>
-          ) : limitReached ? (
-            <span>Daily Limit Reached</span>
-          ) : (
-            <>
-              <PlayIcon />
-              <span>Start watching</span>
-            </>
-          )}
+          {buttonIcon()}
+          <span>{buttonLabel()}</span>
         </button>
 
         <div className="flex items-center justify-between px-1">
