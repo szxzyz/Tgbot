@@ -19,10 +19,11 @@ import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
 import MenuPopup from "@/components/MenuPopup";
+import InvitePopup from "@/components/InvitePopup";
 
-const ACCENT = "#C6F135";
-const ACCENT_DIM = "rgba(198,241,53,0.10)";
-const ACCENT_GLOW = "0 0 16px rgba(198,241,53,0.35)";
+const ACCENT = "#00E676";
+const ACCENT_DIM = "rgba(0,230,118,0.10)";
+const ACCENT_GLOW = "0 0 16px rgba(0,230,118,0.35)";
 
 interface UnifiedTask {
   id: string;
@@ -129,6 +130,7 @@ export default function Home() {
   const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
@@ -482,7 +484,7 @@ export default function Home() {
                 background: `conic-gradient(${ACCENT}, transparent, ${ACCENT}80, transparent, ${ACCENT})`,
                 padding: '2px',
                 borderRadius: '50%',
-                boxShadow: `0 0 20px rgba(198,241,53,0.4), 0 0 40px rgba(198,241,53,0.15)`,
+                boxShadow: `0 0 20px rgba(0,230,118,0.4), 0 0 40px rgba(0,230,118,0.15)`,
               }}
             />
             <div
@@ -490,7 +492,7 @@ export default function Home() {
               style={{
                 border: `2px solid ${ACCENT}`,
                 background: '#111',
-                boxShadow: `0 0 0 3px rgba(198,241,53,0.15), ${ACCENT_GLOW}`,
+                boxShadow: `0 0 0 3px rgba(0,230,118,0.15), ${ACCENT_GLOW}`,
               }}
               onClick={() => { if (isAdmin) setLocation('/admin'); }}
             >
@@ -537,7 +539,7 @@ export default function Home() {
             <span className="text-white font-black text-sm">Daily Reward</span>
             <span
               className="text-[10px] font-black px-2 py-0.5 rounded-lg tracking-wider"
-              style={{ background: ACCENT_DIM, color: ACCENT, border: `1px solid rgba(198,241,53,0.2)` }}
+              style={{ background: ACCENT_DIM, color: ACCENT, border: `1px solid rgba(0,230,118,0.2)` }}
             >
               10 ANX / day
             </span>
@@ -558,14 +560,14 @@ export default function Home() {
                     background: isToday
                       ? ACCENT_DIM
                       : isClaimed
-                      ? 'rgba(198,241,53,0.04)'
+                      ? 'rgba(0,230,118,0.04)'
                       : 'rgba(255,255,255,0.02)',
                     border: isToday
                       ? `1.5px solid ${ACCENT}60`
                       : isClaimed
-                      ? `1.5px solid rgba(198,241,53,0.15)`
+                      ? `1.5px solid rgba(0,230,118,0.15)`
                       : '1.5px solid rgba(255,255,255,0.04)',
-                    boxShadow: isToday ? `0 0 10px rgba(198,241,53,0.2)` : 'none',
+                    boxShadow: isToday ? `0 0 10px rgba(0,230,118,0.2)` : 'none',
                   }}
                 >
                   <span
@@ -630,7 +632,7 @@ export default function Home() {
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.shareStory?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}>
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,230,118,0.1)' }}>
                       <Check className="w-4 h-4" style={{ color: ACCENT }} />
                     </div>
                   ) : shareWithFriendsStep === 'ready' || shareWithFriendsStep === 'claiming' ? (
@@ -655,7 +657,7 @@ export default function Home() {
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.dailyCheckin?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,230,118,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
                   ) : dailyCheckinStep === 'ads' ? (
                     <Button disabled className="h-8 w-20 text-xs font-bold rounded-lg bg-purple-600 text-white">Watching...</Button>
                   ) : dailyCheckinStep === 'ready' || dailyCheckinStep === 'claiming' ? (
@@ -679,9 +681,9 @@ export default function Home() {
                 </div>
                 <div className="ml-3 flex-shrink-0">
                   {missionStatus?.checkForUpdates?.claimed ? (
-                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(198,241,53,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
+                    <div className="h-8 w-20 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,230,118,0.1)' }}><Check className="w-4 h-4" style={{ color: ACCENT }} /></div>
                   ) : checkForUpdatesStep === 'opened' ? (
-                    <div className="h-8 w-20 flex items-center justify-center gap-1 rounded-lg" style={{ background: '#1a1a1a', border: '1px solid rgba(198,241,53,0.2)' }}>
+                    <div className="h-8 w-20 flex items-center justify-center gap-1 rounded-lg" style={{ background: '#1a1a1a', border: '1px solid rgba(0,230,118,0.2)' }}>
                       <Clock size={12} style={{ color: ACCENT }} />
                       <span className="text-white text-xs font-bold">{checkForUpdatesCountdown}s</span>
                     </div>
@@ -709,10 +711,11 @@ export default function Home() {
 
       {settingsOpen && <SettingsPopup onClose={() => setSettingsOpen(false)} />}
       {aboutOpen && <AboutPopup onClose={() => setAboutOpen(false)} />}
+      {inviteOpen && <InvitePopup onClose={() => setInviteOpen(false)} />}
       {menuOpen && (
         <MenuPopup
           onClose={() => setMenuOpen(false)}
-          onInviteClick={() => { setMenuOpen(false); }}
+          onAboutClick={() => { setMenuOpen(false); setAboutOpen(true); }}
         />
       )}
 
@@ -724,7 +727,7 @@ export default function Home() {
 
       <BottomNav
         onWithdrawClick={() => setWithdrawPopupOpen(true)}
-        onFriendsClick={() => setAboutOpen(true)}
+        onInviteClick={() => setInviteOpen(true)}
       />
     </Layout>
   );
