@@ -1718,11 +1718,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // AXN reward amount (no conversion needed - store AXN directly)
-      const adRewardAXN = rewardPerAdAXN;
-      
+      // CRITICAL: Validate reward amount is sane (max 100 per ad, guards against DB misconfiguration)
+      const MAX_REWARD_PER_AD = 100;
+      const adRewardAXN = Math.min(rewardPerAdAXN, MAX_REWARD_PER_AD);
+      if (rewardPerAdAXN > MAX_REWARD_PER_AD) {
+        console.warn(`⚠️ reward_per_ad in DB (${rewardPerAdAXN}) exceeds max allowed (${MAX_REWARD_PER_AD}), capping to ${MAX_REWARD_PER_AD}`);
+      }
+
       try {
-        // Process reward with error handling to ensure success response
+        // Single addEarning call — it already internally handles:
+        //   1. Balance update (userBalances + users table)
+        //   2. checkAndActivateReferralBonus (on first ad)
+        //   3. processReferralCommission (10% to referrer, once)
+        // Do NOT duplicate any of these here.
         await storage.addEarning({
           userId,
           amount: String(adRewardAXN),
@@ -1730,10 +1738,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: 'Watched advertisement',
         });
         
-        // Increment ads watched count
+        // Increment ads watched counters
         await storage.incrementAdsWatched(userId);
         
-        // Add BUG reward for watching ad
+        // Add BUG reward for watching ad (separate from AXN, no duplication risk)
         if (bugRewardPerAd > 0) {
           await db
             .update(users)
@@ -1744,42 +1752,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .where(eq(users.id, userId));
           console.log(`🐛 Added ${bugRewardPerAd} BUG to user ${userId} for ad watch`);
         }
-        
-        // Check and activate referral bonuses (anti-fraud: requires 10 ads)
-        try {
-          await storage.checkAndActivateReferralBonus(userId);
-        } catch (bonusError) {
-          // Log but don't fail the request if bonus processing fails
-          console.error("⚠️ Referral bonus processing failed (non-critical):", bonusError);
-        }
-        
-        // Process 10% referral commission for referrer (if user was referred)
-        if (user.referredBy) {
-          try {
-            // CRITICAL: Validate referrer exists before adding commission
-            const referrer = await storage.getUser(user.referredBy);
-            if (referrer) {
-              const referralCommissionAXN = Math.round(adRewardAXN * 0.1);
-              await storage.addEarning({
-                userId: user.referredBy,
-                amount: String(referralCommissionAXN),
-                source: 'referral_commission',
-                description: `10% commission from ${user.username || user.telegram_id}'s ad watch`,
-              });
-            } else {
-              // Referrer no longer exists - clean up orphaned reference
-              console.warn(`⚠️ Referrer ${user.referredBy} no longer exists, clearing orphaned referral for user ${userId}`);
-              await storage.clearOrphanedReferral(userId);
-            }
-          } catch (commissionError) {
-            // Log but don't fail the request if commission processing fails
-            console.error("⚠️ Referral commission processing failed (non-critical):", commissionError);
-          }
-        }
       } catch (earningError) {
         console.error("❌ Critical error adding earning:", earningError);
         // Even if earning fails, still try to return success to avoid user-facing errors
-        // The ad was watched, so we should acknowledge it
       }
       
       // Get updated balance (with fallback)
