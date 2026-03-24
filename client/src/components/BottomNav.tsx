@@ -1,20 +1,20 @@
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ACCENT = "#C6F135";
+const ACCENT = "#00E676";
 
 interface BottomNavProps {
   onWithdrawClick?: () => void;
-  onFriendsClick?: () => void;
+  onInviteClick?: () => void;
 }
 
-function AboutNavIcon({ active }: { active?: boolean }) {
+function InviteNavIcon({ active }: { active?: boolean }) {
   const color = active ? ACCENT : "#666";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9.5" stroke={color} strokeWidth="1.7" />
-      <path d="M12 11v6" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      <circle cx="12" cy="7.5" r="1.2" fill={color} />
+      <circle cx="9" cy="8" r="3.5" stroke={color} strokeWidth="1.7" />
+      <path d="M2 20c0-3 3-5.5 7-5.5s7 2.5 7 5.5" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M19 10v6M22 13h-6" stroke={color} strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -50,7 +50,7 @@ function HomeNavIcon() {
   );
 }
 
-export default function BottomNav({ onWithdrawClick, onFriendsClick }: BottomNavProps) {
+export default function BottomNav({ onWithdrawClick, onInviteClick }: BottomNavProps) {
   const [location, setLocation] = useLocation();
   const isHome = location === "/";
   const isAdmin = location === "/admin" || location.startsWith("/admin");
@@ -60,20 +60,20 @@ export default function BottomNav({ onWithdrawClick, onFriendsClick }: BottomNav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
         background: 'rgba(6,6,6,0.97)',
-        borderTop: '1px solid #1a1a1a',
+        borderTop: '1px solid #1e1e1e',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
       }}
     >
       <div className="max-w-md mx-auto flex">
-        {/* About */}
+        {/* Invite */}
         <button
-          onClick={onFriendsClick}
+          onClick={onInviteClick}
           className="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors active:bg-white/5"
         >
-          <AboutNavIcon />
+          <InviteNavIcon />
           <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#666' }}>
-            About
+            Invite
           </span>
         </button>
 
@@ -87,7 +87,7 @@ export default function BottomNav({ onWithdrawClick, onFriendsClick }: BottomNav
             style={{
               background: '#0a0a0a',
               border: `2px solid ${ACCENT}`,
-              boxShadow: `0 0 16px rgba(198,241,53,0.35), 0 -4px 20px rgba(198,241,53,0.1)`,
+              boxShadow: `0 0 16px rgba(0,230,118,0.35), 0 -4px 20px rgba(0,230,118,0.1)`,
             }}
           >
             <AnimatePresence mode="wait">

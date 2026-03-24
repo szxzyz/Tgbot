@@ -5,7 +5,7 @@ import { showNotification } from "@/components/AppNotification";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ACCENT = "#C6F135";
+const ACCENT = "#00E676";
 
 interface WithdrawalPopupProps {
   open: boolean;
@@ -127,7 +127,7 @@ export default function WithdrawalPopup({ open, onOpenChange }: WithdrawalPopupP
               {/* Rate pill */}
               <div
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl self-start w-full justify-center"
-                style={{ background: "rgba(198,241,53,0.06)", border: "1px solid rgba(198,241,53,0.12)" }}
+                style={{ background: "rgba(0,230,118,0.06)", border: "1px solid rgba(0,230,118,0.12)" }}
               >
                 <span className="text-[11px] font-bold" style={{ color: "#555" }}>1,000,000 ANX</span>
                 <span className="text-[11px]" style={{ color: "#2a2a2a" }}>→</span>
@@ -146,8 +146,8 @@ export default function WithdrawalPopup({ open, onOpenChange }: WithdrawalPopupP
                         onClick={() => setPercent(pct / 100)}
                         className="flex-1 h-8 rounded-lg text-xs font-black transition-all active:scale-95"
                         style={{
-                          background: active ? "rgba(198,241,53,0.1)" : "#111",
-                          border: `1px solid ${active ? "rgba(198,241,53,0.3)" : "#1a1a1a"}`,
+                          background: active ? "rgba(0,230,118,0.1)" : "#111",
+                          border: `1px solid ${active ? "rgba(0,230,118,0.3)" : "#1a1a1a"}`,
                           color: active ? ACCENT : "#444",
                         }}
                       >
@@ -159,7 +159,7 @@ export default function WithdrawalPopup({ open, onOpenChange }: WithdrawalPopupP
                 <div
                   className="flex items-center rounded-xl overflow-hidden"
                   style={{
-                    border: `1px solid ${amount ? "rgba(198,241,53,0.2)" : "#1a1a1a"}`,
+                    border: `1px solid ${amount ? "rgba(0,230,118,0.2)" : "#1a1a1a"}`,
                     background: "#111",
                   }}
                 >
@@ -182,7 +182,7 @@ export default function WithdrawalPopup({ open, onOpenChange }: WithdrawalPopupP
                 <div
                   className="flex items-center rounded-xl overflow-hidden"
                   style={{
-                    border: `1px solid ${address ? "rgba(198,241,53,0.2)" : "#1a1a1a"}`,
+                    border: `1px solid ${address ? "rgba(0,230,118,0.2)" : "#1a1a1a"}`,
                     background: "#111",
                   }}
                 >
@@ -218,7 +218,7 @@ export default function WithdrawalPopup({ open, onOpenChange }: WithdrawalPopupP
                 onClick={handleSubmit}
                 disabled={withdrawMutation.isPending}
                 className="w-full h-12 rounded-xl font-black text-sm text-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-                style={{ background: ACCENT, boxShadow: "0 0 20px rgba(198,241,53,0.25)" }}
+                style={{ background: ACCENT, boxShadow: "0 0 20px rgba(0,230,118,0.25)" }}
               >
                 {withdrawMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

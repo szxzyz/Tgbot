@@ -4,7 +4,7 @@ import { showNotification } from "@/components/AppNotification";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
-const ACCENT = "#C6F135";
+const ACCENT = "#00E676";
 
 interface ReferralItem {
   name: string;
@@ -126,7 +126,7 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
                 onClick={handleShare}
                 disabled={!referralLink}
                 className="flex-1 h-11 rounded-xl font-black text-sm text-black flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40"
-                style={{ background: ACCENT, boxShadow: `0 0 16px rgba(198,241,53,0.2)` }}
+                style={{ background: ACCENT, boxShadow: `0 0 16px rgba(0,230,118,0.2)` }}
               >
                 <Share2 className="w-4 h-4" />
                 Invite Friends
@@ -181,15 +181,15 @@ export default function InvitePopup({ onClose }: InvitePopupProps) {
                       key={i}
                       className="rounded-xl px-3 py-2.5 flex items-center justify-between"
                       style={{
-                        background: r.isActive ? "rgba(198,241,53,0.04)" : "#080808",
-                        border: `1px solid ${r.isActive ? "rgba(198,241,53,0.1)" : "#111"}`,
+                        background: r.isActive ? "rgba(0,230,118,0.04)" : "#080808",
+                        border: `1px solid ${r.isActive ? "rgba(0,230,118,0.1)" : "#111"}`,
                       }}
                     >
                       <div className="flex items-center gap-2.5">
                         <div
                           className="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs flex-shrink-0"
                           style={{
-                            background: r.isActive ? "rgba(198,241,53,0.1)" : "#111",
+                            background: r.isActive ? "rgba(0,230,118,0.1)" : "#111",
                             color: r.isActive ? ACCENT : "#333",
                           }}
                         >

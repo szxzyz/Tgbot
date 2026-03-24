@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const ACCENT = "#C6F135";
+const ACCENT = "#00E676";
 
 interface AdWatchingSectionProps {
   user: any;
@@ -19,7 +19,7 @@ interface AdWatchingSectionProps {
 
 function PlayIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
       <polygon points="5 3 19 12 5 21 5 3" />
     </svg>
   );
@@ -54,30 +54,28 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
       return response.json();
     },
     onSuccess: (data: any) => {
-      // Use exact server-returned reward - never rely on client-side guess
-      const reward = typeof data.rewardAXN === 'number' ? data.rewardAXN : parseInt(String(data.rewardAXN || '0'), 10);
+      // Use ONLY server-returned reward value — never derive from client state
+      const reward = typeof data.rewardAXN === 'number'
+        ? data.rewardAXN
+        : parseInt(String(data.rewardAXN ?? '0'), 10);
       setLastReward(reward);
       setAdStep('credited');
 
-      // Update cache with server values
-      if (data?.newBalance !== undefined) {
-        queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
-          ...old,
-          balance: String(data.newBalance),
-          adsWatchedToday: typeof data.adsWatchedToday === 'number'
-            ? data.adsWatchedToday
-            : (old?.adsWatchedToday || 0) + 1,
-          adsWatched: (old?.adsWatched || 0) + 1,
-        }));
-      }
+      // Update cache strictly from server values — no local arithmetic
+      queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
+        ...old,
+        balance: data.newBalance !== undefined ? String(data.newBalance) : old?.balance,
+        adsWatchedToday: data.adsWatchedToday !== undefined
+          ? data.adsWatchedToday
+          : (old?.adsWatchedToday || 0) + 1,
+        adsWatched: (old?.adsWatched || 0) + 1,
+      }));
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
 
-      // Show notification
       showNotification(`+${reward} ANX added!`, "success");
       onReward?.(reward);
 
-      // Return to idle after 2 seconds so user can watch another ad
       setTimeout(() => {
         setAdStep('idle');
         isProcessingRef.current = false;
@@ -118,6 +116,7 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
   }, []);
 
   const handleStartEarning = useCallback(async () => {
+    // Guard: only one processing at a time
     if (isProcessingRef.current) return;
     if (adStep !== 'idle') return;
     isProcessingRef.current = true;
@@ -139,7 +138,6 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
         return;
       }
 
-      // Ad was watched - now credit immediately
       setAdStep('crediting');
       watchAdMutation.mutate('monetag');
     } catch {
@@ -167,9 +165,9 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
 
   const buttonIcon = () => {
     switch (adStep) {
-      case 'playing': return <Clock size={16} className="animate-spin" />;
-      case 'crediting': return <Shield size={16} className="animate-pulse text-green-400" />;
-      case 'credited': return <CheckCircle size={16} className="text-green-400" />;
+      case 'playing': return <Clock size={15} className="animate-spin" />;
+      case 'crediting': return <Shield size={15} className="animate-pulse text-green-400" />;
+      case 'credited': return <CheckCircle size={15} className="text-green-400" />;
       default: return !limitReached ? <PlayIcon /> : null;
     }
   };
@@ -177,40 +175,52 @@ export default function AdWatchingSection({ user, onReward }: AdWatchingSectionP
   return (
     <div
       className="rounded-2xl overflow-hidden mb-3"
-      style={{ background: '#0d0d0d', border: '1px solid #1a1a1a' }}
+      style={{
+        background: '#181818',
+        border: '1px solid #252525',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.35)',
+      }}
     >
-      <div className="px-4 pt-5 pb-4">
-        <div className="text-center mb-5">
+      <div className="px-4 pt-4 pb-4">
+        <div className="text-center mb-4">
           <h2 className="text-white font-black text-base leading-tight mb-1">Viewing ads</h2>
           <p className="text-[12px]" style={{ color: '#6b6b6b' }}>
             Get ANX for watching commercials
           </p>
         </div>
 
-        <button
-          onClick={handleStartEarning}
-          disabled={isActive || limitReached}
-          className="w-full rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mb-4"
-          style={{
-            height: '52px',
-            background: adStep === 'credited'
-              ? 'rgba(34,197,94,0.12)'
-              : isActive || limitReached
-                ? 'rgba(255,255,255,0.05)'
-                : ACCENT,
-            color: adStep === 'credited'
-              ? '#22c55e'
-              : isActive || limitReached
-                ? '#555'
-                : '#000',
-            border: adStep === 'credited' ? '1px solid rgba(34,197,94,0.3)' : 'none',
-            boxShadow: !isActive && !limitReached ? `0 0 20px rgba(198,241,53,0.28)` : 'none',
-          }}
-          data-testid="button-watch-ad"
-        >
-          {buttonIcon()}
-          <span>{buttonLabel()}</span>
-        </button>
+        {/* Full-width pill — Ember style */}
+        <div className="mb-4">
+          <button
+            onClick={handleStartEarning}
+            disabled={isActive || limitReached}
+            className="w-full font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+            style={{
+              height: '52px',
+              borderRadius: '999px',
+              fontSize: '13px',
+              letterSpacing: '0.08em',
+              background: adStep === 'credited'
+                ? 'rgba(0,230,118,0.12)'
+                : isActive || limitReached
+                  ? 'rgba(255,255,255,0.05)'
+                  : ACCENT,
+              color: adStep === 'credited'
+                ? ACCENT
+                : isActive || limitReached
+                  ? '#555'
+                  : '#000',
+              border: adStep === 'credited' ? `1px solid rgba(0,230,118,0.3)` : 'none',
+              boxShadow: !isActive && !limitReached
+                ? `0 0 32px rgba(0,230,118,0.4), 0 4px 16px rgba(0,0,0,0.5)`
+                : 'none',
+            }}
+            data-testid="button-watch-ad"
+          >
+            {buttonIcon()}
+            <span>{buttonLabel()}</span>
+          </button>
+        </div>
 
         <div className="flex items-center justify-between px-1">
           <span className="text-[11px] font-semibold" style={{ color: '#555' }}>

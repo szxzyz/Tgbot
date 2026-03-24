@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
-const ACCENT = "#C6F135";
-const ACCENT_DIM = "rgba(198,241,53,0.10)";
+const ACCENT = "#00E676";
+const ACCENT_DIM = "rgba(0,230,118,0.10)";
 
 interface AboutPopupProps {
   onClose: () => void;
@@ -123,17 +123,17 @@ export default function AboutPopup({ onClose }: AboutPopupProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 }}
                 className="relative rounded-2xl overflow-hidden p-5"
-                style={{ background: ACCENT_DIM, border: "1px solid rgba(198,241,53,0.18)" }}
+                style={{ background: ACCENT_DIM, border: "1px solid rgba(0,230,118,0.18)" }}
               >
                 <motion.div
                   className="absolute -top-8 -right-8 w-32 h-32 rounded-full"
-                  style={{ background: "rgba(198,241,53,0.07)", filter: "blur(24px)" }}
+                  style={{ background: "rgba(0,230,118,0.07)", filter: "blur(24px)" }}
                   animate={{ scale: [1, 1.15, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <motion.div
                   className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full"
-                  style={{ background: "rgba(198,241,53,0.05)", filter: "blur(20px)" }}
+                  style={{ background: "rgba(0,230,118,0.05)", filter: "blur(20px)" }}
                   animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.8, 0.3] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 />
@@ -142,10 +142,10 @@ export default function AboutPopup({ onClose }: AboutPopupProps) {
                     className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center"
                     style={{
                       border: `2px solid ${ACCENT}40`,
-                      background: "rgba(198,241,53,0.08)",
-                      boxShadow: `0 0 24px rgba(198,241,53,0.2)`,
+                      background: "rgba(0,230,118,0.08)",
+                      boxShadow: `0 0 24px rgba(0,230,118,0.2)`,
                     }}
-                    animate={{ boxShadow: ["0 0 16px rgba(198,241,53,0.15)", "0 0 32px rgba(198,241,53,0.35)", "0 0 16px rgba(198,241,53,0.15)"] }}
+                    animate={{ boxShadow: ["0 0 16px rgba(0,230,118,0.15)", "0 0 32px rgba(0,230,118,0.35)", "0 0 16px rgba(0,230,118,0.15)"] }}
                     transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <img src="/btc-icon.jpg" alt="ANX" className="w-full h-full object-cover" onError={(e) => {
@@ -216,7 +216,7 @@ export default function AboutPopup({ onClose }: AboutPopupProps) {
                     >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: ACCENT_DIM, border: "1px solid rgba(198,241,53,0.12)" }}
+                        style={{ background: ACCENT_DIM, border: "1px solid rgba(0,230,118,0.12)" }}
                       >
                         {icon}
                       </div>

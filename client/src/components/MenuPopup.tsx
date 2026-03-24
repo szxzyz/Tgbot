@@ -4,19 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Receipt, ChevronRight, Shield, ArrowLeft, Clock, CheckCircle,
   XCircle, Loader2, Trophy, Video, CheckSquare, Square,
-  Plus, Youtube, Instagram, UserPlus, Copy, Share2, Users, Zap,
+  Plus, Youtube, Instagram, Info,
 } from "lucide-react";
 import { format } from "date-fns";
 
-const ACCENT = "#C6F135";
-const ACCENT_DIM = "rgba(198,241,53,0.10)";
+const ACCENT = "#00E676";
+const ACCENT_DIM = "rgba(0,230,118,0.10)";
 
 interface MenuPopupProps {
   onClose: () => void;
-  onInviteClick?: () => void;
+  onAboutClick?: () => void;
 }
 
-type View = "main" | "transactions" | "legal" | "contest" | "invite";
+type View = "main" | "transactions" | "legal" | "contest";
 
 const VIEW_RANGES = [
   { label: "100 – 999 Views", value: "100-999", reward: "100 ANX" },
@@ -71,7 +71,7 @@ function ProjectIcon() {
   );
 }
 
-export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
+export default function MenuPopup({ onClose, onAboutClick }: MenuPopupProps) {
   const [view, setView] = useState<View>("main");
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [link, setLink] = useState("");
@@ -176,48 +176,11 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
 
   const isSubView = view !== "main" || showSubmitForm;
 
-  const [copied, setCopied] = useState(false);
-
-  const { data: referralData, isLoading: referralLoading } = useQuery<{ referrals: any[] }>({
-    queryKey: ["/api/referrals/list"],
-    enabled: view === "invite",
-    staleTime: 30000,
-  });
-  const { data: botInfo } = useQuery<{ username: string }>({
-    queryKey: ["/api/bot-info"],
-    staleTime: 3600000,
-  });
-
-  const botUsername = botInfo?.username || "bot";
-  const referralLink = user?.referralCode
-    ? `https://t.me/${botUsername}?start=${user.referralCode}`
-    : "";
-  const referrals = referralData?.referrals || [];
-  const totalFriends = referrals.length;
-  const totalIncome = referrals.reduce((sum: number, r: any) => sum + (r.totalSatsEarned || 0), 0);
-
-  const handleShare = () => {
-    if (!referralLink) return;
-    const tg = (window as any).Telegram?.WebApp;
-    const text = "Join ANX — earn crypto by watching ads! 🚀";
-    const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
-    if (tg?.openTelegramLink) tg.openTelegramLink(url);
-    else window.open(url, "_blank");
-  };
-
-  const handleCopy = () => {
-    if (!referralLink) return;
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const viewTitle: Record<View, string> = {
     main: "Menu",
     transactions: "Transactions",
     legal: "Legal Info",
     contest: "Contest",
-    invite: "Invite Friends",
   };
 
   const currentTitle = showSubmitForm ? "Submit Content" : viewTitle[view];
@@ -275,7 +238,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                   <div className="flex items-center gap-3">
                     <div
                       className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-                      style={{ border: `2px solid rgba(198,241,53,0.25)`, background: "#1a1a1a" }}
+                      style={{ border: `2px solid rgba(0,230,118,0.25)`, background: "#1a1a1a" }}
                     >
                       {photoUrl ? (
                         <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -345,15 +308,15 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                   </div>
                 </div>
 
-                {/* Invite Friends */}
+                {/* About ANX */}
                 <button
-                  onClick={() => setView("invite")}
+                  onClick={() => { onAboutClick?.(); onClose(); }}
                   className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                  style={{ background: "#181818", border: "1px solid #252525", boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
                 >
                   <div className="flex items-center gap-3">
-                    <UserPlus className="w-5 h-5 text-blue-400" />
-                    <span className="text-white font-bold text-sm">Invite Friends</span>
+                    <Info className="w-5 h-5 text-blue-400" />
+                    <span className="text-white font-bold text-sm">About ANX</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/20" />
                 </button>
@@ -362,7 +325,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                 <button
                   onClick={() => setView("contest")}
                   className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                  style={{ background: "#181818", border: "1px solid #252525", boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
                 >
                   <div className="flex items-center gap-3">
                     <Trophy className="w-5 h-5" style={{ color: ACCENT }} />
@@ -375,7 +338,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                 <button
                   onClick={() => setView("transactions")}
                   className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                  style={{ background: "#181818", border: "1px solid #252525", boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
                 >
                   <div className="flex items-center gap-3">
                     <Receipt className="w-5 h-5 text-green-400" />
@@ -388,7 +351,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                 <button
                   onClick={() => setView("legal")}
                   className="w-full flex items-center justify-between rounded-2xl p-4 transition-all active:scale-[0.99]"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
+                  style={{ background: "#181818", border: "1px solid #252525", boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
                 >
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-purple-400" />
@@ -452,152 +415,18 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
               </div>
             )}
 
-            {/* ─── Invite Friends View ─── */}
-            {view === "invite" && (
-              <div className="px-4 py-4 space-y-3">
-                {/* Stats row */}
-                <div className="flex gap-2">
-                  <div
-                    className="flex-1 rounded-xl px-3 py-3 flex items-center gap-2"
-                    style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
-                  >
-                    <Users className="w-4 h-4 flex-shrink-0" style={{ color: ACCENT }} />
-                    <div>
-                      <p className="text-white font-black text-lg leading-none">{totalFriends}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#333" }}>Friends</p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex-1 rounded-xl px-3 py-3 flex items-center gap-2"
-                    style={{ background: "#0d0d0d", border: "1px solid #1a1a1a" }}
-                  >
-                    <Zap className="w-4 h-4 flex-shrink-0" style={{ color: ACCENT }} />
-                    <div>
-                      <p className="font-black text-lg leading-none tabular-nums" style={{ color: ACCENT }}>
-                        {totalIncome > 999 ? `${(totalIncome / 1000).toFixed(1)}K` : totalIncome}
-                      </p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#333" }}>ANX earned</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info banner */}
-                <div
-                  className="rounded-xl px-3.5 py-3"
-                  style={{ background: ACCENT_DIM, border: "1px solid rgba(198,241,53,0.15)" }}
-                >
-                  <p className="text-xs font-semibold" style={{ color: ACCENT }}>
-                    Earn <span className="font-black">10%</span> of every ANX your friends earn
-                  </p>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleShare}
-                    disabled={!referralLink}
-                    className="flex-1 h-11 rounded-xl font-black text-sm text-black flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40"
-                    style={{ background: ACCENT, boxShadow: `0 0 16px rgba(198,241,53,0.2)` }}
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Invite
-                  </button>
-                  <button
-                    onClick={handleCopy}
-                    disabled={!referralLink}
-                    className="h-11 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40"
-                    style={{
-                      background: "#0d0d0d",
-                      border: `1px solid ${copied ? ACCENT + "50" : "#1a1a1a"}`,
-                      color: copied ? ACCENT : "#555",
-                    }}
-                  >
-                    <Copy className="w-4 h-4" />
-                    {copied ? "Copied!" : "Copy"}
-                  </button>
-                </div>
-
-                {/* Referral link */}
-                {referralLink && (
-                  <div
-                    className="rounded-xl px-3 py-2.5 flex items-center gap-2"
-                    style={{ background: "#080808", border: "1px solid #111" }}
-                  >
-                    <p className="text-[10px] text-gray-600 font-mono flex-1 truncate">{referralLink}</p>
-                  </div>
-                )}
-
-                {/* Friends list */}
-                {referralLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: ACCENT }} />
-                  </div>
-                ) : referrals.length === 0 ? (
-                  <div
-                    className="rounded-xl py-8 flex flex-col items-center gap-1.5 text-center"
-                    style={{ background: "#080808", border: "1px dashed #1a1a1a" }}
-                  >
-                    <Users className="w-6 h-6" style={{ color: '#1a1a1a' }} />
-                    <p className="text-white/20 text-xs font-semibold">No friends yet</p>
-                    <p className="text-[10px]" style={{ color: "#1e1e1e" }}>Tap Invite to share</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#2a2a2a" }}>
-                      Your Friends
-                    </p>
-                    <div className="space-y-1.5">
-                      {referrals.map((r: any, i: number) => (
-                        <div
-                          key={i}
-                          className="rounded-xl px-3 py-2.5 flex items-center justify-between"
-                          style={{
-                            background: r.isActive ? "rgba(198,241,53,0.04)" : "#080808",
-                            border: `1px solid ${r.isActive ? "rgba(198,241,53,0.1)" : "#111"}`,
-                          }}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs flex-shrink-0"
-                              style={{
-                                background: r.isActive ? "rgba(198,241,53,0.1)" : "#111",
-                                color: r.isActive ? ACCENT : "#333",
-                              }}
-                            >
-                              {r.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="text-white text-xs font-bold">{r.name}</p>
-                              <p className="text-[9px]" style={{ color: r.isActive ? ACCENT : "#2a2a2a" }}>
-                                {r.isActive ? "● Active" : "○ Inactive"}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-xs font-black tabular-nums" style={{ color: r.isActive ? ACCENT : "#333" }}>
-                            +{r.totalSatsEarned.toLocaleString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="h-4" />
-              </div>
-            )}
-
             {/* ─── Contest View ─── */}
             {view === "contest" && !showSubmitForm && (
               <div className="px-4 py-4 space-y-4">
                 <div
                   className="relative rounded-2xl overflow-hidden p-4"
-                  style={{ background: ACCENT_DIM, border: `1px solid rgba(198,241,53,0.18)` }}
+                  style={{ background: ACCENT_DIM, border: `1px solid rgba(0,230,118,0.18)` }}
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl" style={{ background: "rgba(198,241,53,0.08)" }} />
+                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl" style={{ background: "rgba(0,230,118,0.08)" }} />
                   <div className="relative z-10">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                      style={{ background: "rgba(198,241,53,0.12)", border: "1px solid rgba(198,241,53,0.25)" }}
+                      style={{ background: "rgba(0,230,118,0.12)", border: "1px solid rgba(0,230,118,0.25)" }}
                     >
                       <Trophy className="w-5 h-5" style={{ color: ACCENT }} />
                     </div>
@@ -653,7 +482,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                 <button
                   onClick={() => setShowSubmitForm(true)}
                   className="w-full flex items-center justify-center gap-2 font-black text-sm text-black rounded-2xl py-3.5 transition-all active:scale-[0.98]"
-                  style={{ background: ACCENT, boxShadow: "0 0 20px rgba(198,241,53,0.2)" }}
+                  style={{ background: ACCENT, boxShadow: "0 0 20px rgba(0,230,118,0.2)" }}
                 >
                   <Plus className="w-4 h-4" />
                   Add Content and Earn
@@ -667,7 +496,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
               <div className="px-4 py-4 space-y-4">
                 {submitted ? (
                   <div className="flex flex-col items-center gap-4 text-center py-12">
-                    <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(198,241,53,0.1)", border: "1px solid rgba(198,241,53,0.3)" }}>
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(0,230,118,0.1)", border: "1px solid rgba(0,230,118,0.3)" }}>
                       <Trophy className="w-8 h-8" style={{ color: ACCENT }} />
                     </div>
                     <div>
@@ -706,7 +535,7 @@ export default function MenuPopup({ onClose, onInviteClick }: MenuPopupProps) {
                               className="rounded-xl px-3 py-2 text-left transition-all"
                               style={{
                                 background: selectedRange === r.value ? ACCENT_DIM : "#0d0d0d",
-                                border: `1px solid ${selectedRange === r.value ? "rgba(198,241,53,0.3)" : "#1e1e1e"}`,
+                                border: `1px solid ${selectedRange === r.value ? "rgba(0,230,118,0.3)" : "#1e1e1e"}`,
                               }}
                             >
                               <p className="text-[10px] font-bold" style={{ color: selectedRange === r.value ? ACCENT : "#555" }}>{r.label}</p>
