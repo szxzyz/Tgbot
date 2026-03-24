@@ -6,36 +6,36 @@
 :root {
   --background: #000000;
   --foreground: #FFFFFF;
-  --card: #000000;
+  --card: #111111;
   --card-foreground: #FFFFFF;
   --popover: #000000;
   --popover-foreground: #FFFFFF;
-  --primary: #E88A1A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F2B824;
+  --primary: #00E676;
+  --primary-foreground: #000000;
+  --secondary: #00C853;
   --secondary-foreground: #000000;
   --muted: #1a1a1a;
-  --muted-foreground: #D1D5DB;
-  --accent: #B34700;
-  --accent-foreground: #FFFFFF;
+  --muted-foreground: #888888;
+  --accent: #00E676;
+  --accent-foreground: #000000;
   --destructive: #ef4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.07);
   --input: #1a1a1a;
-  --ring: #F2B824;
-  --chart-1: #E88A1A;
-  --chart-2: #F2B824;
-  --chart-3: #B34700;
-  --chart-4: #E88A1A;
-  --chart-5: #F2B824;
+  --ring: #00E676;
+  --chart-1: #00E676;
+  --chart-2: #00C853;
+  --chart-3: #69F0AE;
+  --chart-4: #00E676;
+  --chart-5: #00C853;
   --sidebar: #000000;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #E88A1A;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: #00E676;
+  --sidebar-primary-foreground: #000000;
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #F2B824;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #00E676;
   --font-sans: "Inter", system-ui, sans-serif;
   --radius: 16px;
 }
@@ -94,8 +94,8 @@
   }
 
   input:focus, textarea:focus, select:focus {
-    border: 1px solid #0098EA !important;
-    box-shadow: 0 0 0 3px rgba(0, 152, 234, 0.1) !important;
+    border: 1px solid #00E676 !important;
+    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1) !important;
     outline: none !important;
   }
 
@@ -147,16 +147,16 @@
 
 /* Primary Button Styling */
 .btn-primary {
-  background: #2D6CDF;
-  color: #FFFFFF;
+  background: #00E676;
+  color: #000000;
   border: none;
-  border-radius: 16px;
-  font-weight: 600;
+  border-radius: 999px;
+  font-weight: 700;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2458b8;
+  background: #00C853;
   transform: translateY(-1px);
 }
 
